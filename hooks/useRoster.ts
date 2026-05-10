@@ -1,6 +1,5 @@
 'use client';
 import { useState, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
 
 export function useRoster(userId: string | null, initial: Record<string, boolean> = {}) {
   const [owned, setOwned] = useState(initial);
@@ -9,11 +8,11 @@ export function useRoster(userId: string | null, initial: Record<string, boolean
     const next = !owned[characterId];
     setOwned(prev => ({ ...prev, [characterId]: next }));
     if (!userId) return;
-    const supabase = createClient();
-    await supabase.from('user_characters').upsert(
-      { user_id: userId, character_id: characterId, owned: next },
-      { onConflict: 'user_id,character_id' }
-    ).catch(() => {});
+    fetch('/api/roster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, characterId, owned: next }),
+    }).catch(() => {});
   }, [userId, owned]);
 
   const setMany = useCallback((map: Record<string, boolean>) => setOwned(map), []);
