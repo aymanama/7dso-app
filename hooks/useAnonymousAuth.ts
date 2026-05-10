@@ -12,10 +12,10 @@ export function useAnonymousAuth() {
         setUserId(session.user.id);
         return;
       }
-      supabase.auth.signInAnonymously().then(({ data }) => {
-        setUserId(data.user?.id ?? null);
-      });
-    });
+      supabase.auth.signInAnonymously().then(({ data, error }) => {
+        if (!error) setUserId(data.user?.id ?? null);
+      }).catch(() => {});
+    }).catch(() => {});
   }, []);
 
   return userId;

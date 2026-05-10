@@ -20,10 +20,11 @@ export default function StrategyPage() {
       .then(r => r.json())
       .then((data: Boss[]) => {
         setBosses(data);
-            if (data.length > 0 && !data.find((b: Boss) => b.id === 'galland')) {
+        if (data.length > 0 && !data.find((b: Boss) => b.id === 'galland')) {
           setSelectedBossId(data[0].id);
         }
       })
+      .catch(() => {})
       .finally(() => setLoadingBosses(false));
   }, []);
 
@@ -34,6 +35,7 @@ export default function StrategyPage() {
     fetch(`/api/builds/${selectedBossId}${params}`)
       .then(r => r.json())
       .then((data: ResolvedBuild) => setBuild(data))
+      .catch(() => {})
       .finally(() => setLoadingBuild(false));
   }, [selectedBossId, userId]);
 
