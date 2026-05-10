@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function GearSlot({ slot, gear }: Props) {
-  const { item, isBis, isOwned, matchedStatTag, isCounter } = gear;
+  const { item, isBis, isOwned, matchedStatTag, isCounter, farmFromBoss } = gear;
 
   const borderColor = isBis
     ? '#F5C84B'
@@ -89,7 +89,7 @@ export function GearSlot({ slot, gear }: Props) {
       {/* FARM hint */}
       {!isBis && !isOwned && (
         <div className="mt-1.5 text-[9px] font-mono text-teal-400/70">
-          ↑ FARM THIS
+          ↑ {farmFromBoss ? `Farm: ${farmFromBoss}` : 'FARM THIS'}
         </div>
       )}
 

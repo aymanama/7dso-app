@@ -74,6 +74,8 @@ export interface Boss {
 export interface BuildSlot {
   id?: string;
   boss_id: string;
+  team_index: number;
+  team_name: string;
   slot_index: number;
   character_id: string;
   ring_priority: string[];
@@ -90,6 +92,7 @@ export interface ResolvedGear {
   matchedStatTag: string | null;
   bisItem: Accessory;
   isCounter: boolean;
+  farmFromBoss: string | null;
 }
 
 export interface ResolvedCharacter {
@@ -100,12 +103,18 @@ export interface ResolvedCharacter {
   earring: ResolvedGear;
   subCount: number;
   synergyScore: number;
+  isOwned: boolean;
+  countersWeakness: boolean;
+  isMetapick: boolean;
 }
 
 export interface ResolvedBuild {
   bossId: string;
+  teamIndex: number;
+  teamName: string;
   slots: ResolvedCharacter[];
   bisCount: number;
   totalSlots: number;
   verdict: Verdict;
+  ownedCharacterCount: number;
 }

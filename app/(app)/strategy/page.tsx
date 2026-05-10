@@ -11,7 +11,8 @@ export default function StrategyPage() {
   const userId = useAnonymousAuth();
   const [bosses, setBosses] = useState<Boss[]>([]);
   const [selectedBossId, setSelectedBossId] = useState<string>('galland');
-  const [build, setBuild] = useState<ResolvedBuild | null>(null);
+  const [builds, setBuilds] = useState<ResolvedBuild[]>([]);
+  const [activeTeam, setActiveTeam] = useState(0);
   const [loadingBosses, setLoadingBosses] = useState(true);
   const [loadingBuild, setLoadingBuild] = useState(false);
 
@@ -32,10 +33,13 @@ export default function StrategyPage() {
   const fetchBuild = useCallback(() => {
     if (!selectedBossId) return;
     setLoadingBuild(true);
+    setActiveTeam(0);
     const params = userId ? `?userId=${userId}` : '';
     fetch(`/api/builds/${selectedBossId}${params}`)
       .then(r => r.json())
-      .then((data: ResolvedBuild) => { if (Array.isArray(data?.slots)) setBuild(data); })
+      .then((data: ResolvedBuild[]) => {
+        if (Array.isArray(data) && data[0]?.slots) setBuilds(data);
+      })
       .catch(() => {})
       .finally(() => setLoadingBuild(false));
   }, [selectedBossId, userId]);
@@ -43,6 +47,7 @@ export default function StrategyPage() {
   useEffect(() => { fetchBuild(); }, [fetchBuild]);
 
   const selectedBoss = bosses.find(b => b.id === selectedBossId) ?? null;
+  const activeBuild = builds[activeTeam] ?? null;
 
   return (
     <div className="pt-5">
@@ -65,16 +70,45 @@ export default function StrategyPage() {
 
       {selectedBoss && <BossSpecCard boss={selectedBoss} />}
 
+      {/* Team switcher */}
+      {builds.length > 1 && (
+        <div className="flex gap-2 px-5 mb-3">
+          {builds.map((b, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveTeam(i)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-mono font-semibold transition-all"
+              style={{
+                background: activeTeam === i ? 'rgba(245,200,75,0.12)' : 'rgba(255,255,255,0.04)',
+                color: activeTeam === i ? '#F5C84B' : 'rgba(255,255,255,0.40)',
+                border: activeTeam === i ? '1px solid rgba(245,200,75,0.30)' : '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
+              {b.teamName}
+              <span
+                className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                style={{
+                  background: b.ownedCharacterCount === b.slots.length ? 'rgba(94,234,212,0.15)' : 'rgba(255,169,88,0.15)',
+                  color: b.ownedCharacterCount === b.slots.length ? '#5EEAD4' : '#FFA958',
+                }}
+              >
+                {b.ownedCharacterCount}/{b.slots.length}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {loadingBuild ? (
         <div className="mx-5 space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-40 rounded-2xl bg-white/[0.03] animate-pulse" />
           ))}
         </div>
-      ) : build ? (
+      ) : activeBuild ? (
         <>
-          <StrategyVerdict verdict={build.verdict} bisCount={build.bisCount} totalSlots={build.totalSlots} />
-          {build.slots.map((slot, i) => (
+          <StrategyVerdict verdict={activeBuild.verdict} bisCount={activeBuild.bisCount} totalSlots={activeBuild.totalSlots} />
+          {activeBuild.slots.map((slot, i) => (
             <CharacterCard key={slot.character.id} resolved={slot} delay={i * 0.07} />
           ))}
         </>

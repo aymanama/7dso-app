@@ -1,6 +1,6 @@
 import { createServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { resolveBuild } from '@/lib/engine/buildEngine';
+import { resolveAllBuilds } from '@/lib/engine/buildEngine';
 import type { Boss, BuildSlot, Accessory, Character } from '@/types/game';
 
 export async function GET(req: Request, { params }: { params: { bossId: string } }) {
@@ -15,14 +15,20 @@ export async function GET(req: Request, { params }: { params: { bossId: string }
     { data: buildSlots },
     { data: allAccessories },
     { data: allCharacters },
+    { data: allBosses },
     { data: inventory },
+    { data: roster },
   ] = await Promise.all([
     supabase.from('bosses').select('*').eq('id', bossId).single(),
-    supabase.from('builds').select('*').eq('boss_id', bossId).order('slot_index'),
+    supabase.from('builds').select('*').eq('boss_id', bossId).order('team_index').order('slot_index'),
     supabase.from('accessories').select('*'),
     supabase.from('characters').select('*'),
+    supabase.from('bosses').select('*'),
     userId
       ? supabase.from('user_inventory').select('accessory_id').eq('user_id', userId).eq('owned', true)
+      : Promise.resolve({ data: [] }),
+    userId
+      ? supabase.from('user_characters').select('character_id').eq('user_id', userId).eq('owned', true)
       : Promise.resolve({ data: [] }),
   ]);
 
@@ -30,19 +36,21 @@ export async function GET(req: Request, { params }: { params: { bossId: string }
     return NextResponse.json({ error: 'Boss not found' }, { status: 404 });
   }
 
-  const accessories = new Map((allAccessories ?? []).map((a: Accessory) => [a.id, a]));
-  const characters  = new Map((allCharacters  ?? []).map((c: Character)  => [c.id, c]));
-  const ownedIds    = new Set(
-    (inventory ?? []).map((r: { accessory_id: string }) => r.accessory_id)
-  );
+  const accessories      = new Map((allAccessories ?? []).map((a: Accessory) => [a.id, a]));
+  const characters       = new Map((allCharacters ?? []).map((c: Character) => [c.id, c]));
+  const bosses           = new Map((allBosses ?? []).map((b: Boss) => [b.id, b]));
+  const ownedIds         = new Set((inventory ?? []).map((r: { accessory_id: string }) => r.accessory_id));
+  const ownedCharacterIds = new Set((roster ?? []).map((r: { character_id: string }) => r.character_id));
 
-  const resolved = resolveBuild({
+  const builds = resolveAllBuilds({
     boss: boss as Boss,
     buildSlots: buildSlots as BuildSlot[],
     characters,
     accessories,
     ownedIds,
+    ownedCharacterIds,
+    bosses,
   });
 
-  return NextResponse.json(resolved);
+  return NextResponse.json(builds);
 }
