@@ -58,7 +58,7 @@ export const BOSS_SLUG_MAP: Record<string, string> = {
 };
 
 // Normalizes element strings from the page → our ElementId
-export function parseElement(raw: string): string | null {
+function parseElement(raw: string): string | null {
   const map: Record<string, string> = {
     fire: 'fire', ice: 'ice', wind: 'wind',
     thunder: 'thunder', earth: 'earth', holy: 'holy',

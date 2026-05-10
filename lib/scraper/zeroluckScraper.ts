@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { ITEM_NAME_MAP, BOSS_SLUG_MAP, elementFromImageSrc, parseElement } from './nameMap';
+import { ITEM_NAME_MAP, BOSS_SLUG_MAP, elementFromImageSrc } from './nameMap';
 
 const BASE = 'https://zeroluck.gg/7dso';
 const FETCH_OPTS: RequestInit = {
