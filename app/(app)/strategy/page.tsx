@@ -72,30 +72,37 @@ export default function StrategyPage() {
 
       {/* Team switcher */}
       {builds.length > 1 && (
-        <div className="flex gap-2 px-5 mb-3">
-          {builds.map((b, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveTeam(i)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-mono font-semibold transition-all"
-              style={{
-                background: activeTeam === i ? 'rgba(245,200,75,0.12)' : 'rgba(255,255,255,0.04)',
-                color: activeTeam === i ? '#F5C84B' : 'rgba(255,255,255,0.40)',
-                border: activeTeam === i ? '1px solid rgba(245,200,75,0.30)' : '1px solid rgba(255,255,255,0.06)',
-              }}
-            >
-              {b.teamName}
-              <span
-                className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
-                style={{
-                  background: b.ownedCharacterCount === b.slots.length ? 'rgba(94,234,212,0.15)' : 'rgba(255,169,88,0.15)',
-                  color: b.ownedCharacterCount === b.slots.length ? '#5EEAD4' : '#FFA958',
-                }}
-              >
-                {b.ownedCharacterCount}/{b.slots.length}
-              </span>
-            </button>
-          ))}
+        <div className="px-5 mb-3">
+          <div className="text-[9px] font-mono text-white/20 uppercase tracking-widest mb-1.5">Formation</div>
+          <div className="flex gap-2">
+            {builds.map((b, i) => {
+              const label = i === 0 ? '★ Recommended' : '◇ Alternative';
+              const full = b.ownedCharacterCount === b.slots.length;
+              return (
+                <button
+                  key={i}
+                  onClick={() => setActiveTeam(i)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-mono font-semibold transition-all"
+                  style={{
+                    background: activeTeam === i ? 'rgba(245,200,75,0.12)' : 'rgba(255,255,255,0.04)',
+                    color: activeTeam === i ? '#F5C84B' : 'rgba(255,255,255,0.40)',
+                    border: activeTeam === i ? '1px solid rgba(245,200,75,0.30)' : '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  {label}
+                  <span
+                    className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                    style={{
+                      background: full ? 'rgba(94,234,212,0.15)' : 'rgba(255,169,88,0.15)',
+                      color: full ? '#5EEAD4' : '#FFA958',
+                    }}
+                  >
+                    {b.ownedCharacterCount}/{b.slots.length}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 

@@ -15,15 +15,15 @@ export function BottomSheet({ open, onClose, title, children }: Props) {
       {open && (
         <>
           <motion.div
-            className="absolute inset-0 bg-black/60 z-40"
+            className="fixed inset-0 bg-black/60 z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
           <motion.div
-            className="absolute bottom-0 left-0 right-0 z-50 bg-[#0F1320] rounded-t-3xl overflow-hidden"
-            style={{ maxHeight: '85%' }}
+            className="fixed bottom-0 left-0 right-0 z-50 bg-[#0F1320] rounded-t-3xl overflow-hidden"
+            style={{ maxHeight: '85vh' }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
