@@ -13,8 +13,8 @@ export function BottomTabBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="absolute bottom-0 left-0 right-0 flex items-center justify-around px-4 pb-safe"
-         style={{ background: 'linear-gradient(to top, #0B0E14 80%, transparent)', paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
+    <nav className="flex-shrink-0 flex items-center justify-around px-4"
+         style={{ background: 'linear-gradient(to top, #0B0E14 85%, transparent)', paddingTop: '12px', paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}>
       {TABS.map(tab => {
         const active = pathname.startsWith(tab.href);
         return (

@@ -24,9 +24,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${jetbrains.variable} ${inter.variable}`}>
-      <body className="bg-[#06080D] flex min-h-svh items-center justify-center p-6">
+      <body className="bg-[#06080D] h-svh sm:flex sm:items-center sm:justify-center sm:p-6 sm:min-h-svh sm:h-auto">
         <div
-          className="w-full max-w-[430px] min-h-[812px] relative overflow-hidden"
+          className="w-full h-full sm:max-w-[430px] sm:h-auto sm:min-h-[812px] sm:rounded-[48px] relative overflow-hidden"
           style={{
             background:
               'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(181,140,255,0.08) 0%, transparent 60%), #0B0E14',
