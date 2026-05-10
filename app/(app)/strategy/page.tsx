@@ -19,6 +19,7 @@ export default function StrategyPage() {
     fetch('/api/bosses')
       .then(r => r.json())
       .then((data: Boss[]) => {
+        if (!Array.isArray(data)) return;
         setBosses(data);
         if (data.length > 0 && !data.find((b: Boss) => b.id === 'galland')) {
           setSelectedBossId(data[0].id);
@@ -34,7 +35,7 @@ export default function StrategyPage() {
     const params = userId ? `?userId=${userId}` : '';
     fetch(`/api/builds/${selectedBossId}${params}`)
       .then(r => r.json())
-      .then((data: ResolvedBuild) => setBuild(data))
+      .then((data: ResolvedBuild) => { if (Array.isArray(data?.slots)) setBuild(data); })
       .catch(() => {})
       .finally(() => setLoadingBuild(false));
   }, [selectedBossId, userId]);
