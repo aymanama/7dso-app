@@ -47,6 +47,10 @@ export interface Accessory {
   stat_tags: string[];
   drop_sources: string[];
   sort_order: number;
+  main_stat?: string | null;
+  sub_stat?: string | null;
+  passive_description?: string | null;
+  image_url?: string | null;
 }
 
 export interface ArmorPiece {
@@ -61,6 +65,7 @@ export interface ArmorPiece {
   sort_order: number;
   two_pc_bonus: string | null;
   four_pc_bonus: string | null;
+  image_url?: string | null;
 }
 
 export interface Weapon {

@@ -1,21 +1,20 @@
 'use client';
 import { motion } from 'framer-motion';
-import { STAT_TAGS } from '@/lib/engine/statTags';
 import { cn } from '@/lib/utils/cn';
 import type { Accessory, Tier } from '@/types/game';
 
 const SLOT_ICONS: Record<string, string> = { ring: '◌', necklace: '◎', earring: '⟡' };
+
+const TIER_COLORS: Record<Tier, string> = {
+  SSR: '#F5C84B',
+  SR:  '#B58CFF',
+};
 
 interface Props {
   accessory: Accessory;
   owned: boolean;
   onToggle: () => void;
 }
-
-const TIER_COLORS: Record<Tier, string> = {
-  SSR: '#F5C84B',
-  SR:  '#B58CFF',
-};
 
 export function GearToggleItem({ accessory, owned, onToggle }: Props) {
   return (
@@ -27,28 +26,46 @@ export function GearToggleItem({ accessory, owned, onToggle }: Props) {
       whileTap={{ scale: 0.98 }}
       onClick={onToggle}
     >
-      {/* Slot icon */}
-      <span className="text-white/40 text-base flex-shrink-0">{SLOT_ICONS[accessory.slot]}</span>
+      <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden bg-white/[0.04]">
+        {accessory.image_url ? (
+          <img src={accessory.image_url} alt={accessory.name} className="w-7 h-7 object-contain" />
+        ) : (
+          <span className="text-white/40 text-base">{SLOT_ICONS[accessory.slot]}</span>
+        )}
+      </div>
 
-      {/* Info */}
       <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center gap-1.5 mb-0.5">
           <span className="text-[9px] font-mono font-bold" style={{ color: TIER_COLORS[accessory.tier] }}>
             {accessory.tier}
           </span>
-          <span className="text-[9px] font-mono text-white/30 uppercase">{accessory.slot}</span>
+          {accessory.set_name && (
+            <span className="text-[9px] font-mono text-white/30">· {accessory.set_name}</span>
+          )}
         </div>
         <div className="text-[12px] font-mono text-white/80 leading-tight truncate">{accessory.name}</div>
-        <div className="flex gap-1 mt-1 flex-wrap">
-          {accessory.stat_tags.map(tag => (
-            <span key={tag} className="text-[9px] font-mono bg-white/[0.06] text-white/40 px-1.5 py-0.5 rounded-full">
-              {STAT_TAGS[tag as keyof typeof STAT_TAGS] ?? tag}
-            </span>
-          ))}
-        </div>
+
+        {(accessory.main_stat || accessory.sub_stat) && (
+          <div className="flex items-center gap-2 mt-0.5">
+            {accessory.main_stat && (
+              <span className="text-[9px] font-mono text-white/35">{accessory.main_stat}</span>
+            )}
+            {accessory.main_stat && accessory.sub_stat && (
+              <span className="text-[9px] font-mono text-white/20">·</span>
+            )}
+            {accessory.sub_stat && (
+              <span className="text-[9px] font-mono text-[#F5C84B]/50">{accessory.sub_stat}</span>
+            )}
+          </div>
+        )}
+
+        {accessory.passive_description && (
+          <p className="text-[10px] font-mono text-white/40 line-clamp-2 mt-0.5 leading-tight">
+            {accessory.passive_description}
+          </p>
+        )}
       </div>
 
-      {/* Toggle */}
       <div
         className={cn(
           'w-10 h-6 rounded-full flex-shrink-0 relative transition-colors duration-200',

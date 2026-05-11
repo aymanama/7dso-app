@@ -1,6 +1,5 @@
 'use client';
 import { motion } from 'framer-motion';
-import { STAT_TAGS } from '@/lib/engine/statTags';
 import { cn } from '@/lib/utils/cn';
 import type { ArmorPiece, Tier } from '@/types/game';
 
@@ -9,6 +8,13 @@ const SLOT_ICONS: Record<string, string> = {
   bottoms: '▼',
   belt: '◉',
   combat_boots: '⬟',
+};
+
+const SLOT_LABELS: Record<string, string> = {
+  top: 'Chest',
+  bottoms: 'Bottoms',
+  belt: 'Belt',
+  combat_boots: 'Boots',
 };
 
 const TIER_COLORS: Record<Tier, string> = {
@@ -32,32 +38,32 @@ export function ArmorToggleItem({ armor, owned, onToggle }: Props) {
       whileTap={{ scale: 0.98 }}
       onClick={onToggle}
     >
-      <span className="text-white/40 text-base flex-shrink-0">
-        {SLOT_ICONS[armor.slot]}
-      </span>
+      <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden bg-white/[0.04]">
+        {armor.image_url ? (
+          <img src={armor.image_url} alt={armor.name} className="w-7 h-7 object-contain" />
+        ) : (
+          <span className="text-white/40 text-base">{SLOT_ICONS[armor.slot]}</span>
+        )}
+      </div>
 
       <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center gap-1.5 mb-0.5">
           <span className="text-[9px] font-mono font-bold" style={{ color: TIER_COLORS[armor.tier] }}>
             {armor.tier}
           </span>
-          <span className="text-[9px] font-mono text-white/30 uppercase">
-            {armor.slot.replace('_', ' ')}
-          </span>
+          {armor.set_name && (
+            <span className="text-[9px] font-mono text-white/30">· {armor.set_name}</span>
+          )}
         </div>
-        <div className="text-[12px] font-mono text-white/80 leading-tight truncate">
-          {armor.name}
+        <div className="text-[12px] font-mono text-white/80 leading-tight truncate">{armor.name}</div>
+        <div className="text-[9px] font-mono text-white/25 mt-0.5 uppercase tracking-wide">
+          {SLOT_LABELS[armor.slot]}
         </div>
-        <div className="flex gap-1 mt-1 flex-wrap">
-          {armor.stat_tags.map(tag => (
-            <span
-              key={tag}
-              className="text-[9px] font-mono bg-white/[0.06] text-white/40 px-1.5 py-0.5 rounded-full"
-            >
-              {STAT_TAGS[tag as keyof typeof STAT_TAGS] ?? tag}
-            </span>
-          ))}
-        </div>
+        {armor.four_pc_bonus && (
+          <p className="text-[10px] font-mono text-white/40 line-clamp-2 mt-0.5 leading-tight">
+            {armor.four_pc_bonus}
+          </p>
+        )}
       </div>
 
       <div
