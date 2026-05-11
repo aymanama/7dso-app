@@ -115,7 +115,7 @@ export default function VaultPage() {
                         style={{ background: isOwned ? 'rgba(255,255,255,0.02)' : 'transparent' }}
                       >
                         <div className="relative flex-shrink-0">
-                          <Sigil name={c.name} portraitUrl={c.portrait_url} element={c.primary_element} size={40} />
+                          <Sigil name={c.name} portraitUrl={c.portrait_url} element={c.primary_element} size={48} />
                           {!isOwned && (
                             <div className="absolute inset-0 rounded-xl bg-black/50 flex items-center justify-center">
                               <span className="text-[9px] font-mono text-white/40 font-bold">✕</span>

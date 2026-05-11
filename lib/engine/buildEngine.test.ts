@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveBuild, type EngineInput } from './buildEngine';
+import { resolveBuild } from './buildEngine';
 import type { Boss, BuildSlot, Accessory, Character } from '@/types/game';
 
 const boss: Boss = {
@@ -29,6 +29,7 @@ const character: Character = {
 
 const slot: BuildSlot = {
   boss_id: 'galland', slot_index: 0, character_id: 'escanor',
+  team_index: 0, team_name: 'Team A',
   ring_priority:     ['watcherRing', 'darkAlt', 'lifeRing'],
   necklace_priority: ['watcherRing'],
   earring_priority:  ['watcherRing'],
@@ -42,7 +43,7 @@ const accessories = new Map<string, Accessory>([
 
 const characters = new Map<string, Character>([['escanor', character]]);
 
-function makeInput(ownedIds: string[]): EngineInput {
+function makeInput(ownedIds: string[]) {
   return { boss, buildSlots: [slot], characters, accessories, ownedIds: new Set(ownedIds) };
 }
 
