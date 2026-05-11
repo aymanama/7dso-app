@@ -155,5 +155,5 @@ export interface ResolvedBuild {
 export interface FarmEntry {
   item: Accessory;
   affectedBossCount: number;
-  dropBoss?: string;
+  dropBoss: string | null;
 }
