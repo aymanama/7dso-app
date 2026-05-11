@@ -43,7 +43,7 @@ export interface Accessory {
   tier: Tier;
   slot: Slot;
   set_id: string | null;
-  set_name: string | null;   // added: display name of parent set
+  set_name?: string | null;
   stat_tags: string[];
   drop_sources: string[];
   sort_order: number;
@@ -126,6 +126,7 @@ export interface ResolvedGear {
   bisItem: Accessory;
   isCounter: boolean;
   farmFromBoss: string | null;
+  allOwnedMatchCount: number;
 }
 
 export interface ResolvedCharacter {
@@ -150,10 +151,12 @@ export interface ResolvedBuild {
   totalSlots: number;
   verdict: Verdict;
   ownedCharacterCount: number;
+  alternativeSetName: string | null;
 }
 
 export interface FarmEntry {
   item: Accessory;
   affectedBossCount: number;
+  impactScore: number;
   dropBoss: string | null;
 }
