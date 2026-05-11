@@ -151,3 +151,9 @@ export interface ResolvedBuild {
   verdict: Verdict;
   ownedCharacterCount: number;
 }
+
+export interface FarmEntry {
+  item: Accessory;
+  affectedBossCount: number;
+  dropBoss?: string;
+}
