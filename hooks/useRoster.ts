@@ -9,7 +9,7 @@ export function useRoster(userId: string | null, initial: Record<string, boolean
     setOwned(prev => ({ ...prev, [characterId]: next }));
     if (!userId) return;
     fetch('/api/roster', {
-      method: 'POST',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, characterId, owned: next }),
     }).catch(() => {});

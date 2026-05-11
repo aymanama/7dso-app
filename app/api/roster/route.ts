@@ -17,10 +17,9 @@ export async function GET(req: Request) {
   return NextResponse.json(result);
 }
 
-export async function POST(req: Request) {
+async function upsertCharacter(req: Request) {
   const { userId, characterId, owned } = await req.json();
   if (!userId || !characterId) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-
   const supabase = createServerClient();
   await supabase.from('user_characters').upsert(
     { user_id: userId, character_id: characterId, owned },
@@ -28,3 +27,6 @@ export async function POST(req: Request) {
   );
   return NextResponse.json({ ok: true });
 }
+
+export async function POST(req: Request) { return upsertCharacter(req); }
+export async function PATCH(req: Request) { return upsertCharacter(req); }

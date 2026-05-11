@@ -5,7 +5,7 @@ import { BossSpecCard } from '@/components/strategy/BossSpecCard';
 import { CharacterCard } from '@/components/strategy/CharacterCard';
 import { StrategyVerdict } from '@/components/strategy/StrategyVerdict';
 import { useAnonymousAuth } from '@/hooks/useAnonymousAuth';
-import type { Boss, ResolvedBuild, ResolvedGear } from '@/types/game';
+import type { Boss, ResolvedBuild, ResolvedGear, Verdict } from '@/types/game';
 
 // In "My Gear" mode, unowned slots show the BiS target without any FARM badge.
 function applyMyGearMode(build: ResolvedBuild): ResolvedBuild {
@@ -32,6 +32,7 @@ export default function StrategyPage() {
   const [loadingBosses, setLoadingBosses] = useState(true);
   const [loadingBuild, setLoadingBuild] = useState(false);
   const [mode, setMode] = useState<'optimal' | 'my_gear'>('optimal');
+  const [verdicts, setVerdicts] = useState<Record<string, Verdict>>({});
 
   useEffect(() => {
     fetch('/api/bosses')
@@ -55,7 +56,10 @@ export default function StrategyPage() {
     fetch(`/api/builds/${selectedBossId}${params}`)
       .then(r => r.json())
       .then((data: ResolvedBuild[]) => {
-        if (Array.isArray(data) && data[0]?.slots) setBuilds(data);
+        if (Array.isArray(data) && data[0]?.slots) {
+          setBuilds(data);
+          setVerdicts(prev => ({ ...prev, [selectedBossId]: data[0].verdict }));
+        }
       })
       .catch(() => {})
       .finally(() => setLoadingBuild(false));
@@ -83,7 +87,7 @@ export default function StrategyPage() {
           ))}
         </div>
       ) : (
-        <BossRail bosses={bosses} selectedId={selectedBossId} onSelect={setSelectedBossId} />
+        <BossRail bosses={bosses} selectedId={selectedBossId} onSelect={setSelectedBossId} verdicts={verdicts} />
       )}
 
       {selectedBoss && <BossSpecCard boss={selectedBoss} />}

@@ -120,3 +120,10 @@ export interface ResolvedBuild {
   ownedCharacterCount: number;
   alternativeSetName: string | null; // set_id of a non-BiS set where user owns 3+ pieces
 }
+
+export interface FarmEntry {
+  item: Accessory;
+  dropBoss: string | null;     // boss short_name
+  impactScore: number;          // number of boss builds improved
+  affectedBossCount: number;
+}

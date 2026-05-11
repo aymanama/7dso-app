@@ -3,25 +3,34 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ELEMENT_META } from '@/lib/utils/elements';
 import { cn } from '@/lib/utils/cn';
-import type { Boss } from '@/types/game';
+import type { Boss, Verdict } from '@/types/game';
+
+const VERDICT_COLORS: Record<Verdict, string> = {
+  perfect:      '#F5C84B',
+  battle_ready: '#4ADE80',
+  viable:       '#FFA958',
+  high_risk:    '#F87171',
+};
 
 interface Props {
   bosses: Boss[];
   selectedId: string;
   onSelect: (id: string) => void;
+  verdicts?: Record<string, Verdict>;
 }
 
-export function BossRail({ bosses, selectedId, onSelect }: Props) {
+export function BossRail({ bosses, selectedId, onSelect, verdicts }: Props) {
   return (
     <div className="flex gap-3 overflow-x-auto px-5 py-2" style={{ scrollbarWidth: 'none' }}>
       {bosses.map((boss, i) => {
         const meta = ELEMENT_META[boss.element_id];
         const isSelected = boss.id === selectedId;
+        const verdict = verdicts?.[boss.id];
         return (
           <motion.button
             key={boss.id}
             className={cn(
-              'flex-shrink-0 flex flex-col items-center gap-1.5 cursor-pointer',
+              'flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer',
               'transition-transform duration-200'
             )}
             initial={{ opacity: 0, y: 8 }}
@@ -47,11 +56,20 @@ export function BossRail({ bosses, selectedId, onSelect }: Props) {
               )}
             </div>
             <span
-              className="text-[10px] font-mono font-semibold tracking-wide"
+              className="text-[10px] font-mono font-semibold tracking-wide leading-none"
               style={{ color: isSelected ? meta.color : 'rgba(255,255,255,0.40)' }}
             >
               {boss.short_name.length > 7 ? boss.short_name.slice(0, 7) + '…' : boss.short_name}
             </span>
+            {/* Verdict dot */}
+            <div className="h-1.5 flex items-center justify-center">
+              {verdict && (
+                <div
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ background: VERDICT_COLORS[verdict] }}
+                />
+              )}
+            </div>
           </motion.button>
         );
       })}

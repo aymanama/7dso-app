@@ -1,3 +1,4 @@
+import '@/lib/polyfills/nodeFile';
 import { NextResponse } from 'next/server';
 import { scrapeAllBosses, scrapeAllCharacters } from '@/lib/scraper/zeroluckScraper';
 import { syncBossesToDB, syncCharactersToDB } from '@/lib/scraper/syncToDB';

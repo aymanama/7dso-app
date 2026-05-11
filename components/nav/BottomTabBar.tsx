@@ -7,6 +7,7 @@ const TABS = [
   { href: '/strategy', icon: '◈', label: 'Strategy' },
   { href: '/codex',    icon: '❒', label: 'Codex' },
   { href: '/vault',    icon: '⬡', label: 'Vault' },
+  { href: '/farm',     icon: '⬢', label: 'Farm' },
 ];
 
 export function BottomTabBar() {

@@ -3,14 +3,19 @@ import { useState, useEffect, useMemo } from 'react';
 import { CodexFilters } from '@/components/codex/CodexFilters';
 import { CodexCard } from '@/components/codex/CodexCard';
 import { CharacterDetail } from '@/components/codex/CharacterDetail';
+import { useAnonymousAuth } from '@/hooks/useAnonymousAuth';
+import { useRoster } from '@/hooks/useRoster';
 import type { Character, ElementId, Tier } from '@/types/game';
 
 export default function CodexPage() {
+  const userId = useAnonymousAuth();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [tier, setTier] = useState<Tier | 'ALL'>('ALL');
   const [element, setElement] = useState<ElementId | 'ALL'>('ALL');
   const [selected, setSelected] = useState<Character | null>(null);
+
+  const { owned: roster, toggle: toggleRoster, setMany: setManyRoster } = useRoster(userId);
 
   useEffect(() => {
     fetch('/api/characters')
@@ -18,6 +23,14 @@ export default function CodexPage() {
       .then(setCharacters)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`/api/roster?userId=${userId}`)
+      .then(r => r.json())
+      .then((data: Record<string, boolean>) => setManyRoster(data))
+      .catch(() => {});
+  }, [userId, setManyRoster]);
 
   const filtered = useMemo(() => {
     return characters.filter(c => {
@@ -54,12 +67,19 @@ export default function CodexPage() {
               character={c}
               delay={i * 0.04}
               onClick={() => setSelected(c)}
+              owned={!!roster[c.id]}
+              onToggle={toggleRoster}
             />
           ))}
         </div>
       )}
 
-      <CharacterDetail character={selected} onClose={() => setSelected(null)} />
+      <CharacterDetail
+        character={selected}
+        onClose={() => setSelected(null)}
+        owned={!!roster[selected?.id ?? '']}
+        onToggle={toggleRoster}
+      />
     </div>
   );
 }
