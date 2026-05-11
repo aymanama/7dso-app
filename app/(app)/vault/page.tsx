@@ -1,60 +1,175 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { GearToggleItem } from '@/components/vault/GearToggleItem';
-import { Sigil } from '@/components/ui/Sigil';
+import { ArmorToggleItem } from '@/components/vault/ArmorToggleItem';
+import { WeaponToggleItem, WEAPON_ICONS } from '@/components/vault/WeaponToggleItem';
 import { useAnonymousAuth } from '@/hooks/useAnonymousAuth';
 import { useInventory } from '@/hooks/useInventory';
-import { useRoster } from '@/hooks/useRoster';
-import type { Accessory, Character } from '@/types/game';
+import { useArmorInventory } from '@/hooks/useArmorInventory';
+import { useWeaponInventory } from '@/hooks/useWeaponInventory';
+import { cn } from '@/lib/utils/cn';
+import type { Accessory, ArmorPiece, Weapon, Character } from '@/types/game';
 
+type Tab = 'accessories' | 'armor' | 'weapons';
 const SLOT_ORDER = ['ring', 'necklace', 'earring'] as const;
+
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div className="flex flex-col items-center py-16 px-5 text-center">
+      <span className="text-5xl text-white/10">⬡</span>
+      <p className="text-sm font-mono text-white/40 mt-3">No {label} data yet</p>
+      <p className="text-[11px] font-mono text-white/20 mt-1">
+        Data will appear once your Supabase tables are seeded.
+      </p>
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="px-5 space-y-3 mt-3">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="h-16 rounded-2xl bg-white/[0.03] animate-pulse" />
+      ))}
+    </div>
+  );
+}
 
 export default function VaultPage() {
   const userId = useAnonymousAuth();
+
+  const [activeTab, setActiveTab] = useState<Tab>('accessories');
+
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [showUnownedOnly, setShowUnownedOnly] = useState(false);
+
   const [accessories, setAccessories] = useState<Accessory[]>([]);
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'gear' | 'heroes'>('heroes');
+  const [accessoriesLoading, setAccessoriesLoading] = useState(true);
+  const { owned: accessoryOwned, toggle: toggleAccessory, setMany: setManyAccessory } = useInventory(userId);
 
-  const [initialOwned, setInitialOwned] = useState<Record<string, boolean>>({});
-  const { owned, toggle, setMany } = useInventory(userId, initialOwned);
+  const [armorPieces, setArmorPieces] = useState<ArmorPiece[]>([]);
+  const [armorLoading, setArmorLoading] = useState(true);
+  const { owned: armorOwned, toggle: toggleArmor, setMany: setManyArmor } = useArmorInventory(userId);
 
-  const [initialRoster, setInitialRoster] = useState<Record<string, boolean>>({});
-  const { owned: roster, toggle: toggleRoster, setMany: setManyRoster } = useRoster(userId, initialRoster);
+  const [weapons, setWeapons] = useState<Weapon[]>([]);
+  const [weaponsLoading, setWeaponsLoading] = useState(true);
+  const { owned: weaponOwned, toggle: toggleWeapon, setMany: setManyWeapon } = useWeaponInventory(userId);
+
+  const [characterMap, setCharacterMap] = useState<Record<string, Character>>({});
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/accessories').then(r => r.json()),
-      fetch('/api/characters').then(r => r.json()),
-    ]).then(([acc, chars]) => {
-      if (Array.isArray(acc)) setAccessories(acc);
-      if (Array.isArray(chars)) setCharacters(chars);
-    }).finally(() => setLoading(false));
+    const t = setTimeout(() => setDebouncedSearch(searchInput), 150);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  useEffect(() => {
+    fetch('/api/accessories')
+      .then(r => r.json())
+      .then(data => Array.isArray(data) ? data : [])
+      .then(setAccessories)
+      .finally(() => setAccessoriesLoading(false));
+
+    fetch('/api/armor')
+      .then(r => r.json())
+      .then(data => Array.isArray(data) ? data : [])
+      .then(setArmorPieces)
+      .finally(() => setArmorLoading(false));
+
+    fetch('/api/weapons')
+      .then(r => r.json())
+      .then(data => Array.isArray(data) ? data : [])
+      .then(setWeapons)
+      .finally(() => setWeaponsLoading(false));
+
+    fetch('/api/characters')
+      .then(r => r.json())
+      .then((chars: Character[]) => {
+        if (!Array.isArray(chars)) return;
+        const map: Record<string, Character> = {};
+        for (const c of chars) map[c.id] = c;
+        setCharacterMap(map);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     if (!userId) return;
     fetch(`/api/inventory?userId=${userId}`)
       .then(r => r.json())
-      .then((data: Record<string, boolean>) => { setInitialOwned(data); setMany(data); })
+      .then((data: Record<string, boolean>) => setManyAccessory(data))
       .catch(() => {});
-    fetch(`/api/roster?userId=${userId}`)
+    fetch(`/api/inventory?userId=${userId}&type=armor`)
       .then(r => r.json())
-      .then((data: Record<string, boolean>) => { setInitialRoster(data); setManyRoster(data); })
+      .then((data: Record<string, boolean>) => setManyArmor(data))
       .catch(() => {});
-  }, [userId, setMany, setManyRoster]);
+    fetch(`/api/inventory?userId=${userId}&type=weapon`)
+      .then(r => r.json())
+      .then((data: Record<string, boolean>) => setManyWeapon(data))
+      .catch(() => {});
+  }, [userId, setManyAccessory, setManyArmor, setManyWeapon]);
 
-  const grouped = useMemo(() => {
+  const filteredAccessories = useMemo(() =>
+    accessories
+      .filter(a => a.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+      .filter(a => !showUnownedOnly || !accessoryOwned[a.id]),
+    [accessories, debouncedSearch, showUnownedOnly, accessoryOwned]
+  );
+
+  const filteredArmor = useMemo(() =>
+    armorPieces
+      .filter(a => a.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+      .filter(a => !showUnownedOnly || !armorOwned[a.id]),
+    [armorPieces, debouncedSearch, showUnownedOnly, armorOwned]
+  );
+
+  const filteredWeapons = useMemo(() =>
+    weapons
+      .filter(w => w.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+      .filter(w => !showUnownedOnly || !weaponOwned[w.id]),
+    [weapons, debouncedSearch, showUnownedOnly, weaponOwned]
+  );
+
+  const groupedAccessories = useMemo(() => {
     const map: Record<string, Accessory[]> = { ring: [], necklace: [], earring: [] };
-    for (const a of accessories) map[a.slot]?.push(a);
+    for (const a of filteredAccessories) map[a.slot]?.push(a);
     return map;
-  }, [accessories]);
+  }, [filteredAccessories]);
 
-  const ownedGearCount = accessories.filter(a => owned[a.id]).length;
-  const ownedHeroCount = characters.filter(c => roster[c.id]).length;
+  const groupedArmor = useMemo(() => {
+    const map: Record<string, ArmorPiece[]> = {};
+    for (const a of filteredArmor) {
+      const key = a.set_name ?? 'Uncategorized';
+      if (!map[key]) map[key] = [];
+      map[key].push(a);
+    }
+    return map;
+  }, [filteredArmor]);
 
-  const ssrChars = characters.filter(c => c.tier === 'SSR');
-  const srChars  = characters.filter(c => c.tier === 'SR');
+  const groupedWeapons = useMemo(() => {
+    const map: Record<string, Weapon[]> = {};
+    for (const w of filteredWeapons) {
+      if (!map[w.weapon_type]) map[w.weapon_type] = [];
+      map[w.weapon_type].push(w);
+    }
+    return map;
+  }, [filteredWeapons]);
+
+  const activeOwnedCount = activeTab === 'accessories'
+    ? accessories.filter(a => accessoryOwned[a.id]).length
+    : activeTab === 'armor'
+    ? armorPieces.filter(a => armorOwned[a.id]).length
+    : weapons.filter(w => weaponOwned[w.id]).length;
+
+  const activeTotalCount = activeTab === 'accessories'
+    ? accessories.length
+    : activeTab === 'armor'
+    ? armorPieces.length
+    : weapons.length;
+
+  const isLoading = activeTab === 'accessories' ? accessoriesLoading
+    : activeTab === 'armor' ? armorLoading
+    : weaponsLoading;
 
   return (
     <div className="pt-5">
@@ -63,115 +178,163 @@ export default function VaultPage() {
           7DS Origin · Smart Strategist
         </div>
         <h1 className="font-mono font-bold text-2xl text-white">Vault</h1>
+        <p className="text-xs font-mono text-white/30 mt-1">
+          {activeOwnedCount} / {activeTotalCount} pieces owned
+        </p>
       </div>
 
-      {/* Tab switcher */}
-      <div className="flex gap-2 px-5 mb-4">
-        {(['heroes', 'gear'] as const).map(tab => (
+      <div className="sticky top-0 z-10 bg-[#0B0E14]/90 backdrop-blur-sm px-5 pb-3 pt-1">
+        <div className="flex items-center gap-2 mb-2">
+          <input
+            type="text"
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            placeholder="Search gear..."
+            className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2 text-sm font-mono text-white placeholder:text-white/30 outline-none focus:border-white/20"
+          />
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-mono font-semibold transition-all"
-            style={{
-              background: activeTab === tab ? 'rgba(245,200,75,0.12)' : 'rgba(255,255,255,0.04)',
-              color: activeTab === tab ? '#F5C84B' : 'rgba(255,255,255,0.40)',
-              border: activeTab === tab ? '1px solid rgba(245,200,75,0.30)' : '1px solid rgba(255,255,255,0.06)',
-            }}
+            onClick={() => setShowUnownedOnly(v => !v)}
+            className={cn(
+              'text-[11px] font-mono font-semibold px-3 py-1.5 rounded-xl border whitespace-nowrap transition-colors',
+              showUnownedOnly
+                ? 'bg-[#F5C84B]/15 text-[#F5C84B] border-[#F5C84B]/30'
+                : 'bg-white/[0.04] text-white/40 border-white/[0.06]'
+            )}
           >
-            {tab === 'heroes' ? '⚔ Heroes' : '◈ Gear'}
-            <span
-              className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
-              style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}
-            >
-              {tab === 'heroes' ? `${ownedHeroCount}/${characters.length}` : `${ownedGearCount}/${accessories.length}`}
-            </span>
+            Not owned only
           </button>
-        ))}
-      </div>
+          <span className="text-[11px] font-mono text-white/30 whitespace-nowrap">
+            {activeOwnedCount} / {activeTotalCount}
+          </span>
+        </div>
 
-      {loading ? (
-        <div className="px-5 space-y-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-16 rounded-2xl bg-white/[0.03] animate-pulse" />
+        <div className="flex gap-2">
+          {(['accessories', 'armor', 'weapons'] as Tab[]).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                'px-3 py-1 rounded-full text-[11px] font-mono font-semibold capitalize transition-all',
+                activeTab === tab
+                  ? 'bg-[#F5C84B] text-[#0B0E14]'
+                  : 'bg-white/[0.06] text-white/40'
+              )}
+            >
+              {tab}
+            </button>
           ))}
         </div>
-      ) : activeTab === 'heroes' ? (
+      </div>
+
+      {isLoading ? (
+        <LoadingSkeleton />
+      ) : activeTab === 'accessories' ? (
         <div>
-          {[{ label: 'SSR', chars: ssrChars }, { label: 'SR', chars: srChars }].map(({ label, chars }) => {
-            if (!chars.length) return null;
-            return (
-              <div key={label} className="mb-4">
-                <div className="px-5 py-2 text-[10px] font-mono text-white/30 uppercase tracking-widest border-b border-white/[0.04]">
-                  {label} ({chars.filter(c => roster[c.id]).length}/{chars.length})
+          {filteredAccessories.length === 0 ? (
+            <EmptyState label={accessories.length === 0 ? 'accessories' : 'matching items'} />
+          ) : (
+            SLOT_ORDER.map(slot => {
+              const items = groupedAccessories[slot] ?? [];
+              if (!items.length) return null;
+              return (
+                <div key={slot} className="mb-4">
+                  <div className="px-5 py-2 text-[10px] font-mono text-white/30 uppercase tracking-widest border-b border-white/[0.04]">
+                    {slot}s ({items.filter(a => accessoryOwned[a.id]).length}/{items.length})
+                  </div>
+                  <div className="divide-y divide-white/[0.04]">
+                    {items.map(a => (
+                      <GearToggleItem
+                        key={a.id}
+                        accessory={a}
+                        owned={!!accessoryOwned[a.id]}
+                        onToggle={() => toggleAccessory(a.id)}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="divide-y divide-white/[0.04]">
-                  {chars.map(c => {
-                    const isOwned = !!roster[c.id];
-                    return (
-                      <button
-                        key={c.id}
-                        onClick={() => toggleRoster(c.id)}
-                        className="w-full flex items-center gap-3 px-5 py-3 transition-all text-left"
-                        style={{ background: isOwned ? 'rgba(255,255,255,0.02)' : 'transparent' }}
-                      >
-                        <div className="relative flex-shrink-0">
-                          <Sigil name={c.name} portraitUrl={c.portrait_url} element={c.primary_element} size={48} />
-                          {!isOwned && (
-                            <div className="absolute inset-0 rounded-xl bg-black/50 flex items-center justify-center">
-                              <span className="text-[9px] font-mono text-white/40 font-bold">✕</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-mono font-semibold text-[13px] leading-tight truncate"
-                            style={{ color: isOwned ? '#E8ECF5' : 'rgba(232,236,245,0.35)' }}>
-                            {c.name}
-                          </div>
-                          <div className="text-[10px] font-mono capitalize"
-                            style={{ color: isOwned ? 'rgba(255,255,255,0.40)' : 'rgba(255,255,255,0.20)' }}>
-                            {c.primary_element} · {c.primary_role}
-                          </div>
-                        </div>
-                        <div
-                          className="w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-all"
-                          style={{
-                            background: isOwned ? '#F5C84B' : 'transparent',
-                            borderColor: isOwned ? '#F5C84B' : 'rgba(255,255,255,0.20)',
-                          }}
-                        >
-                          {isOwned && <span className="text-[9px] text-black font-bold">✓</span>}
-                        </div>
-                      </button>
-                    );
-                  })}
+              );
+            })
+          )}
+        </div>
+      ) : activeTab === 'armor' ? (
+        <div>
+          {filteredArmor.length === 0 ? (
+            <EmptyState label={armorPieces.length === 0 ? 'armor' : 'matching items'} />
+          ) : (
+            Object.entries(groupedArmor).map(([setName, items]) => {
+              const ownedCount = items.filter(a => armorOwned[a.id]).length;
+              const sample = items[0];
+              return (
+                <div key={setName} className="mb-4">
+                  <div className="px-5 py-2 border-b border-white/[0.04]">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest">
+                        {setName}
+                      </span>
+                      <span className="text-[10px] font-mono text-white/30">
+                        {ownedCount}/{items.length} pieces
+                      </span>
+                    </div>
+                    <div className="flex gap-1 flex-wrap">
+                      {ownedCount >= 2 && sample?.two_pc_bonus && (
+                        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#FFA958]/15 text-[#FFA958]">
+                          2pc: {sample.two_pc_bonus}
+                        </span>
+                      )}
+                      {ownedCount >= 4 && sample?.four_pc_bonus && (
+                        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#5EEAD4]/15 text-[#5EEAD4]">
+                          4pc: {sample.four_pc_bonus}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="divide-y divide-white/[0.04]">
+                    {items.map(a => (
+                      <ArmorToggleItem
+                        key={a.id}
+                        armor={a}
+                        owned={!!armorOwned[a.id]}
+                        onToggle={() => toggleArmor(a.id)}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       ) : (
         <div>
-          {SLOT_ORDER.map(slot => {
-            const items = grouped[slot] ?? [];
-            if (!items.length) return null;
-            return (
-              <div key={slot} className="mb-4">
-                <div className="px-5 py-2 text-[10px] font-mono text-white/30 uppercase tracking-widest border-b border-white/[0.04]">
-                  {slot}s ({items.filter(a => owned[a.id]).length}/{items.length})
+          {filteredWeapons.length === 0 ? (
+            <EmptyState label={weapons.length === 0 ? 'weapons' : 'matching items'} />
+          ) : (
+            Object.entries(groupedWeapons).map(([weaponType, items]) => {
+              const ownedCount = items.filter(w => weaponOwned[w.id]).length;
+              return (
+                <div key={weaponType} className="mb-4">
+                  <div className="px-5 py-2 border-b border-white/[0.04] flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest">
+                      {WEAPON_ICONS[weaponType] ?? '•'} {weaponType}
+                    </span>
+                    <span className="text-[10px] font-mono text-white/30">
+                      {ownedCount}/{items.length} owned
+                    </span>
+                  </div>
+                  <div className="divide-y divide-white/[0.04]">
+                    {items.map(w => (
+                      <WeaponToggleItem
+                        key={w.id}
+                        weapon={w}
+                        owned={!!weaponOwned[w.id]}
+                        onToggle={() => toggleWeapon(w.id)}
+                        characterMap={characterMap}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="divide-y divide-white/[0.04]">
-                  {items.map(a => (
-                    <GearToggleItem
-                      key={a.id}
-                      accessory={a}
-                      owned={!!owned[a.id]}
-                      onToggle={() => toggle(a.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       )}
     </div>

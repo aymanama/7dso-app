@@ -5,6 +5,14 @@ export type Tier      = 'SSR'|'SR';
 export type BossKind  = 'Dungeon'|'World'|'Timespace';
 export type Verdict   = 'perfect'|'battle_ready'|'viable'|'high_risk';
 
+// Sourced from zeroluck.gg/7dso/characters — 12 actual game types
+export type WeaponType =
+  | 'Axe' | 'Book' | 'Cudgel' | 'Dual Swords'
+  | 'Gauntlets' | 'Greatsword' | 'Lance' | 'Longsword'
+  | 'Rapier' | 'Shield' | 'Staff' | 'Wand';
+
+export type ArmorSlot = 'top' | 'bottoms' | 'belt' | 'combat_boots';
+
 export interface Element {
   id: ElementId;
   label: string;
@@ -35,7 +43,33 @@ export interface Accessory {
   tier: Tier;
   slot: Slot;
   set_id: string | null;
+  set_name: string | null;   // added: display name of parent set
   stat_tags: string[];
+  drop_sources: string[];
+  sort_order: number;
+}
+
+export interface ArmorPiece {
+  id: string;
+  name: string;
+  tier: Tier;
+  slot: ArmorSlot;
+  set_id: string | null;
+  set_name: string | null;
+  stat_tags: string[];
+  drop_sources: string[];
+  sort_order: number;
+  two_pc_bonus: string | null;
+  four_pc_bonus: string | null;
+}
+
+export interface Weapon {
+  id: string;
+  name: string;
+  tier: Tier;
+  weapon_type: WeaponType;
+  character_id: string | null;
+  passive_description: string | null;
   drop_sources: string[];
   sort_order: number;
 }
@@ -82,7 +116,6 @@ export interface BuildSlot {
   necklace_priority: string[];
   earring_priority: string[];
   source?: string;
-  updated_at?: string;
 }
 
 export interface ResolvedGear {
@@ -93,7 +126,6 @@ export interface ResolvedGear {
   bisItem: Accessory;
   isCounter: boolean;
   farmFromBoss: string | null;
-  allOwnedMatchCount: number; // owned alts found in full-scan pass (outside priority list)
 }
 
 export interface ResolvedCharacter {
@@ -118,12 +150,4 @@ export interface ResolvedBuild {
   totalSlots: number;
   verdict: Verdict;
   ownedCharacterCount: number;
-  alternativeSetName: string | null; // set_id of a non-BiS set where user owns 3+ pieces
-}
-
-export interface FarmEntry {
-  item: Accessory;
-  dropBoss: string | null;     // boss short_name
-  impactScore: number;          // number of boss builds improved
-  affectedBossCount: number;
 }
