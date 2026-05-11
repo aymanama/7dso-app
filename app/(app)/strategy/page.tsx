@@ -5,7 +5,23 @@ import { BossSpecCard } from '@/components/strategy/BossSpecCard';
 import { CharacterCard } from '@/components/strategy/CharacterCard';
 import { StrategyVerdict } from '@/components/strategy/StrategyVerdict';
 import { useAnonymousAuth } from '@/hooks/useAnonymousAuth';
-import type { Boss, ResolvedBuild } from '@/types/game';
+import type { Boss, ResolvedBuild, ResolvedGear } from '@/types/game';
+
+// In "My Gear" mode, unowned slots show the BiS target without any FARM badge.
+function applyMyGearMode(build: ResolvedBuild): ResolvedBuild {
+  const neutralize = (gear: ResolvedGear): ResolvedGear =>
+    gear.isOwned ? gear : { ...gear, isBis: true };
+
+  return {
+    ...build,
+    slots: build.slots.map(slot => ({
+      ...slot,
+      ring:     neutralize(slot.ring),
+      necklace: neutralize(slot.necklace),
+      earring:  neutralize(slot.earring),
+    })),
+  };
+}
 
 export default function StrategyPage() {
   const userId = useAnonymousAuth();
@@ -15,6 +31,7 @@ export default function StrategyPage() {
   const [activeTeam, setActiveTeam] = useState(0);
   const [loadingBosses, setLoadingBosses] = useState(true);
   const [loadingBuild, setLoadingBuild] = useState(false);
+  const [mode, setMode] = useState<'optimal' | 'my_gear'>('optimal');
 
   useEffect(() => {
     fetch('/api/bosses')
@@ -47,7 +64,8 @@ export default function StrategyPage() {
   useEffect(() => { fetchBuild(); }, [fetchBuild]);
 
   const selectedBoss = bosses.find(b => b.id === selectedBossId) ?? null;
-  const activeBuild = builds[activeTeam] ?? null;
+  const rawBuild = builds[activeTeam] ?? null;
+  const activeBuild = rawBuild && mode === 'my_gear' ? applyMyGearMode(rawBuild) : rawBuild;
 
   return (
     <div className="pt-5">
@@ -114,6 +132,36 @@ export default function StrategyPage() {
         </div>
       ) : activeBuild ? (
         <>
+          {/* Mode toggle */}
+          <div className="px-5 mb-3 flex items-center gap-2">
+            {(['optimal', 'my_gear'] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className="px-3 py-1.5 rounded-xl text-[11px] font-mono font-semibold transition-all"
+                style={{
+                  background: mode === m ? 'rgba(181,140,255,0.12)' : 'rgba(255,255,255,0.04)',
+                  color: mode === m ? '#B58CFF' : 'rgba(255,255,255,0.35)',
+                  border: mode === m ? '1px solid rgba(181,140,255,0.30)' : '1px solid rgba(255,255,255,0.06)',
+                }}
+              >
+                {m === 'optimal' ? '◈ Optimal' : '⬡ My Gear'}
+              </button>
+            ))}
+          </div>
+
+          {/* My Gear banner */}
+          {mode === 'my_gear' && (
+            <div
+              className="mx-5 mb-3 px-3 py-2 rounded-xl"
+              style={{ background: 'rgba(94,234,212,0.05)', border: '1px solid rgba(94,234,212,0.12)' }}
+            >
+              <div className="text-[10px] font-mono text-teal-400/80">
+                ✦ Your best current loadout · Gold slots are BiS targets you don&apos;t own yet
+              </div>
+            </div>
+          )}
+
           <StrategyVerdict verdict={activeBuild.verdict} bisCount={activeBuild.bisCount} totalSlots={activeBuild.totalSlots} />
           {activeBuild.slots.map((slot, i) => (
             <CharacterCard key={slot.character.id} resolved={slot} delay={i * 0.07} />

@@ -93,6 +93,7 @@ export interface ResolvedGear {
   bisItem: Accessory;
   isCounter: boolean;
   farmFromBoss: string | null;
+  allOwnedMatchCount: number; // owned alts found in full-scan pass (outside priority list)
 }
 
 export interface ResolvedCharacter {
@@ -117,4 +118,5 @@ export interface ResolvedBuild {
   totalSlots: number;
   verdict: Verdict;
   ownedCharacterCount: number;
+  alternativeSetName: string | null; // set_id of a non-BiS set where user owns 3+ pieces
 }

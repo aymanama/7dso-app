@@ -19,6 +19,24 @@ function farmFromBoss(bisItem: Accessory, bosses: Map<string, Boss>): string | n
   return bosses.get(bossId)?.short_name ?? bossId;
 }
 
+// Count owned accessories outside the priority list that share stat_tags with BiS.
+function countFullScanMatches(
+  bisTags: Set<string>,
+  slot: string,
+  accessories: Map<string, Accessory>,
+  ownedIds: Set<string>,
+  prioritySet: Set<string>,
+): number {
+  let count = 0;
+  for (const [, acc] of accessories) {
+    if (prioritySet.has(acc.id)) continue;
+    if (!ownedIds.has(acc.id)) continue;
+    if (acc.slot !== slot) continue;
+    if (acc.stat_tags.some(t => bisTags.has(t))) count++;
+  }
+  return count;
+}
+
 function resolveGear(
   priority: string[],
   accessories: Map<string, Accessory>,
@@ -28,13 +46,15 @@ function resolveGear(
 ): ResolvedGear {
   const bisId = priority[0];
   const bisItem = accessories.get(bisId)!;
+  const bisTags = new Set(bisItem.stat_tags);
+  const prioritySet = new Set(priority);
 
   if (ownedIds.has(bisId)) {
     const isCounter = !!(bisItem.set_id && boss.bis_set_ids.includes(bisItem.set_id));
-    return { item: bisItem, isBis: true, isOwned: true, matchedStatTag: null, bisItem, isCounter, farmFromBoss: null };
+    return { item: bisItem, isBis: true, isOwned: true, matchedStatTag: null, bisItem, isCounter, farmFromBoss: null, allOwnedMatchCount: 0 };
   }
 
-  const bisTags = new Set(bisItem.stat_tags);
+  // Pass 1: priority list in order
   for (const altId of priority.slice(1)) {
     if (!ownedIds.has(altId)) continue;
     const alt = accessories.get(altId);
@@ -42,7 +62,39 @@ function resolveGear(
     const match = alt.stat_tags.find(t => bisTags.has(t));
     if (!match) continue;
     const isCounter = !!(alt.set_id && boss.bis_set_ids.includes(alt.set_id));
-    return { item: alt, isBis: false, isOwned: true, matchedStatTag: match, bisItem, isCounter, farmFromBoss: null };
+    const allOwnedMatchCount = countFullScanMatches(bisTags, bisItem.slot, accessories, ownedIds, prioritySet);
+    return { item: alt, isBis: false, isOwned: true, matchedStatTag: match, bisItem, isCounter, farmFromBoss: null, allOwnedMatchCount };
+  }
+
+  // Pass 2: full scan — owned accessories not in priority list, same slot, matching tags.
+  // Pick by most overlapping stat_tags (more = better fit).
+  let bestAlt: { acc: Accessory; matchCount: number; matchTag: string } | null = null;
+  let fullScanCount = 0;
+
+  for (const [, acc] of accessories) {
+    if (prioritySet.has(acc.id)) continue;
+    if (!ownedIds.has(acc.id)) continue;
+    if (acc.slot !== bisItem.slot) continue;
+    const matchingTags = acc.stat_tags.filter(t => bisTags.has(t));
+    if (matchingTags.length === 0) continue;
+    fullScanCount++;
+    if (!bestAlt || matchingTags.length > bestAlt.matchCount) {
+      bestAlt = { acc, matchCount: matchingTags.length, matchTag: matchingTags[0] };
+    }
+  }
+
+  if (bestAlt) {
+    const isCounter = !!(bestAlt.acc.set_id && boss.bis_set_ids.includes(bestAlt.acc.set_id));
+    return {
+      item: bestAlt.acc,
+      isBis: false,
+      isOwned: true,
+      matchedStatTag: bestAlt.matchTag,
+      bisItem,
+      isCounter,
+      farmFromBoss: null,
+      allOwnedMatchCount: fullScanCount,
+    };
   }
 
   return {
@@ -53,7 +105,35 @@ function resolveGear(
     bisItem,
     isCounter: false,
     farmFromBoss: farmFromBoss(bisItem, bosses),
+    allOwnedMatchCount: 0,
   };
+}
+
+// Returns the set_id of a non-BiS set where the user owns 3+ pieces, or null.
+function resolveAlternativeSet(
+  accessories: Map<string, Accessory>,
+  ownedIds: Set<string>,
+  bisSetIds: string[],
+): string | null {
+  const setCounts = new Map<string, number>();
+
+  for (const [, acc] of accessories) {
+    if (!ownedIds.has(acc.id) || !acc.set_id) continue;
+    if (bisSetIds.includes(acc.set_id)) continue;
+    setCounts.set(acc.set_id, (setCounts.get(acc.set_id) ?? 0) + 1);
+  }
+
+  let bestSetId: string | null = null;
+  let bestCount = 2; // need strictly more than 2 → i.e. ≥ 3
+
+  for (const [setId, count] of setCounts) {
+    if (count > bestCount) {
+      bestCount = count;
+      bestSetId = setId;
+    }
+  }
+
+  return bestSetId;
 }
 
 function calcVerdict(bisCount: number, total: number): Verdict {
@@ -64,7 +144,6 @@ function calcVerdict(bisCount: number, total: number): Verdict {
   return 'high_risk';
 }
 
-// S-tier characters considered metapicks
 const METAPICK_IDS = new Set(['escanor', 'meliodas', 'elaine', 'king', 'jericho', 'guila', 'diane', 'clotho']);
 
 function resolveTeam(
@@ -105,6 +184,8 @@ function resolveTeam(
     ? resolvedSlots.filter(s => s.isOwned).length
     : resolvedSlots.length;
 
+  const alternativeSetName = resolveAlternativeSet(accessories, ownedIds, boss.bis_set_ids);
+
   return {
     bossId: boss.id,
     teamIndex,
@@ -114,13 +195,13 @@ function resolveTeam(
     totalSlots,
     verdict: calcVerdict(bisCount, totalSlots),
     ownedCharacterCount,
+    alternativeSetName,
   };
 }
 
 export function resolveAllBuilds(input: EngineInput): ResolvedBuild[] {
   const { boss, buildSlots, characters, accessories, ownedIds, ownedCharacterIds, bosses } = input;
 
-  // Group slots by team_index
   const teamMap = new Map<number, { name: string; slots: BuildSlot[] }>();
   for (const slot of buildSlots) {
     const ti = slot.team_index ?? 0;
@@ -134,12 +215,11 @@ export function resolveAllBuilds(input: EngineInput): ResolvedBuild[] {
     teams.push(resolveTeam(boss, slots, ti, name, characters, accessories, ownedIds, ownedCharacterIds, bosses));
   }
 
-  // Sort: most owned characters first
   teams.sort((a, b) => b.ownedCharacterCount - a.ownedCharacterCount);
   return teams;
 }
 
-// Keep for test backward compat
+// Backward-compat shim for tests
 export function resolveBuild(input: Omit<EngineInput, 'ownedCharacterIds' | 'bosses'>): ResolvedBuild {
   const slotsWithTeam = input.buildSlots.map(s => ({ ...s, team_index: 0, team_name: 'Team A' }));
   return resolveAllBuilds({

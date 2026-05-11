@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { resolveBuild } from './buildEngine';
 import type { Boss, BuildSlot, Accessory, Character } from '@/types/game';
 
+// ─── shared fixtures ──────────────────────────────────────────────────────────
+
 const boss: Boss = {
   id: 'galland', name: 'Galland', short_name: 'Galland', portrait_url: null,
   element_id: 'dark', weakness_elements: ['holy'], threat: 95, kind: 'Dungeon',
@@ -20,6 +22,16 @@ const wrongRing: Accessory = {
   id: 'lifeRing', name: 'Life Crystal Ring', tier: 'SSR',
   slot: 'ring', set_id: 'cries', stat_tags: ['hp_recovery'], drop_sources: [], sort_order: 2,
 };
+// NOT in any priority list — used for full-scan tests
+const offListRing: Accessory = {
+  id: 'offListRing', name: 'Off-List Dark Ring', tier: 'SR',
+  slot: 'ring', set_id: null, stat_tags: ['dark_dmg', 'crit_dmg'], drop_sources: [], sort_order: 3,
+};
+// Off-list ring with zero matching tags
+const noMatchRing: Accessory = {
+  id: 'noMatchRing', name: 'No Match Ring', tier: 'SR',
+  slot: 'ring', set_id: null, stat_tags: ['shield', 'support_amp'], drop_sources: [], sort_order: 4,
+};
 
 const character: Character = {
   id: 'escanor', name: 'Escanor', tier: 'SSR', primary_element: 'fire', elements: ['fire'],
@@ -35,7 +47,7 @@ const slot: BuildSlot = {
   earring_priority:  ['watcherRing'],
 };
 
-const accessories = new Map<string, Accessory>([
+const baseAccessories = new Map<string, Accessory>([
   ['watcherRing', bisRing],
   ['darkAlt',     altRing],
   ['lifeRing',    wrongRing],
@@ -43,9 +55,11 @@ const accessories = new Map<string, Accessory>([
 
 const characters = new Map<string, Character>([['escanor', character]]);
 
-function makeInput(ownedIds: string[]) {
+function makeInput(ownedIds: string[], accessories = baseAccessories) {
   return { boss, buildSlots: [slot], characters, accessories, ownedIds: new Set(ownedIds) };
 }
+
+// ─── existing tests (unchanged) ───────────────────────────────────────────────
 
 describe('resolveBuild', () => {
   it('returns BiS when user owns it', () => {
@@ -90,5 +104,45 @@ describe('resolveBuild', () => {
   it('counter hint when chosen item set_id is in boss.bis_set_ids', () => {
     const result = resolveBuild(makeInput(['watcherRing']));
     expect(result.slots[0].ring.isCounter).toBe(true);
+  });
+
+  // ─── new tests: full-scan fallback behavior ─────────────────────────────────
+
+  it('full scan picks owned ring NOT in priority list when it shares stat_tag with BiS', () => {
+    const accessories = new Map([...baseAccessories, ['offListRing', offListRing]]);
+    // Priority list only has BiS (watcherRing); user doesn't own it
+    const shortSlot: BuildSlot = { ...slot, ring_priority: ['watcherRing'] };
+    const result = resolveBuild({
+      boss, buildSlots: [shortSlot], characters, accessories,
+      ownedIds: new Set(['offListRing']),
+    });
+    const ring = result.slots[0].ring;
+    expect(ring.isOwned).toBe(true);
+    expect(ring.item.id).toBe('offListRing');
+    expect(ring.matchedStatTag).toBe('dark_dmg');
+    expect(ring.isBis).toBe(false);
+  });
+
+  it('full scan rejects owned ring with zero overlapping stat_tags', () => {
+    const accessories = new Map([...baseAccessories, ['noMatchRing', noMatchRing]]);
+    const shortSlot: BuildSlot = { ...slot, ring_priority: ['watcherRing'] };
+    const result = resolveBuild({
+      boss, buildSlots: [shortSlot], characters, accessories,
+      ownedIds: new Set(['noMatchRing']),
+    });
+    const ring = result.slots[0].ring;
+    // noMatchRing has shield/support_amp — zero overlap with dark_dmg → must not appear
+    expect(ring.isOwned).toBe(false);
+    expect(ring.item.id).toBe('watcherRing');
+  });
+
+  it('allOwnedMatchCount > 0 when the full scan finds owned matching accessories outside the priority list', () => {
+    const accessories = new Map([...baseAccessories, ['offListRing', offListRing]]);
+    const shortSlot: BuildSlot = { ...slot, ring_priority: ['watcherRing'] };
+    const result = resolveBuild({
+      boss, buildSlots: [shortSlot], characters, accessories,
+      ownedIds: new Set(['offListRing']),
+    });
+    expect(result.slots[0].ring.allOwnedMatchCount).toBeGreaterThan(0);
   });
 });
