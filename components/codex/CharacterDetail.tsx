@@ -1,4 +1,5 @@
 'use client';
+import { motion } from 'framer-motion';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Sigil } from '@/components/ui/Sigil';
 import { TierBadge } from '@/components/ui/TierBadge';
@@ -15,9 +16,11 @@ const WEAPON_ICONS: Record<string, string> = {
 interface Props {
   character: Character | null;
   onClose: () => void;
+  owned?: boolean;
+  onToggle?: (id: string) => void;
 }
 
-export function CharacterDetail({ character, onClose }: Props) {
+export function CharacterDetail({ character, onClose, owned = false, onToggle }: Props) {
   return (
     <BottomSheet open={!!character} onClose={onClose} title={character?.name}>
       {character && (
@@ -64,6 +67,26 @@ export function CharacterDetail({ character, onClose }: Props) {
               <p className="text-xs font-mono text-white/50 leading-relaxed">{character.blurb}</p>
             </div>
           )}
+
+          {/* Ownership toggle */}
+          <div className="flex items-center justify-between py-3 border-t border-white/[0.06]">
+            <div>
+              <div className="text-[12px] font-mono font-semibold text-white/80">I own this character</div>
+              <div className="text-[10px] font-mono text-white/30 mt-0.5">Affects team coverage scores</div>
+            </div>
+            <button
+              onClick={() => onToggle?.(character.id)}
+              className="w-12 h-6 rounded-full relative flex-shrink-0 transition-colors duration-200"
+              style={{ background: owned ? '#F5C84B' : 'rgba(255,255,255,0.10)' }}
+              aria-label={owned ? 'Unmark as owned' : 'Mark as owned'}
+            >
+              <motion.div
+                className="absolute top-1 w-4 h-4 rounded-full bg-white shadow"
+                animate={{ left: owned ? '24px' : '4px' }}
+                transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+              />
+            </button>
+          </div>
 
           {/* Tier rank */}
           <div className="flex items-center gap-2 pt-1 border-t border-white/[0.06]">
