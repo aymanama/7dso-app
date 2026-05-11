@@ -7,10 +7,10 @@ import { ElementPip } from '@/components/ui/ElementPip';
 import type { Character } from '@/types/game';
 
 const WEAPON_ICONS: Record<string, string> = {
-  Axe: '🪓', Book: '📖', Cudgel: '🏏',
-  'Dual Swords': '⚔', Gauntlets: '🥊', Greatsword: '🗡',
-  Lance: '🏹', Longsword: '⚔', Rapier: '🤺',
-  Shield: '🛡', Staff: '⚕', Wand: '🪄',
+  Axe: '🪓', 'Dual Swords': '⚔', Gauntlets: '🥊',
+  Greatsword: '🗡', Grimoire: '📖', Lance: '🏹',
+  Longsword: '⚔', Nunchaku: '🏏', Rapier: '🤺',
+  Staff: '⚕', 'Sword and Shield': '🛡', Wand: '🪄',
 };
 
 interface Props {

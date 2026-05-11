@@ -5,11 +5,11 @@ export type Tier      = 'SSR'|'SR';
 export type BossKind  = 'Dungeon'|'World'|'Timespace';
 export type Verdict   = 'perfect'|'battle_ready'|'viable'|'high_risk';
 
-// Sourced from zeroluck.gg/7dso/characters — 12 actual game types
+// Sourced from zeroluck.gg/7dso/weapons — display names matching the game
 export type WeaponType =
-  | 'Axe' | 'Book' | 'Cudgel' | 'Dual Swords'
-  | 'Gauntlets' | 'Greatsword' | 'Lance' | 'Longsword'
-  | 'Rapier' | 'Shield' | 'Staff' | 'Wand';
+  | 'Axe' | 'Dual Swords' | 'Gauntlets' | 'Greatsword' | 'Grimoire'
+  | 'Lance' | 'Longsword' | 'Nunchaku' | 'Rapier' | 'Staff'
+  | 'Sword and Shield' | 'Wand';
 
 export type ArmorSlot = 'top' | 'bottoms' | 'belt' | 'combat_boots';
 
@@ -68,8 +68,13 @@ export interface Weapon {
   name: string;
   tier: Tier;
   weapon_type: WeaponType;
-  character_id: string | null;
+  weapon_set_name: string | null;
+  main_stat: string | null;
+  sub_stat: string | null;
+  max_effect: string | null;
   passive_description: string | null;
+  image_url: string | null;
+  character_ids: string[];
   drop_sources: string[];
   sort_order: number;
 }

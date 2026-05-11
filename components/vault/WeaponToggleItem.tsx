@@ -4,10 +4,10 @@ import { cn } from '@/lib/utils/cn';
 import type { Weapon, Tier, Character } from '@/types/game';
 
 export const WEAPON_ICONS: Record<string, string> = {
-  Axe: '🪓', Book: '📖', Cudgel: '🏏',
-  'Dual Swords': '⚔', Gauntlets: '🥊', Greatsword: '🗡',
-  Lance: '🏹', Longsword: '⚔', Rapier: '🤺',
-  Shield: '🛡', Staff: '⚕', Wand: '🪄',
+  Axe: '🪓', 'Dual Swords': '⚔', Gauntlets: '🥊',
+  Greatsword: '🗡', Grimoire: '📖', Lance: '🏹',
+  Longsword: '⚔', Nunchaku: '🏏', Rapier: '🤺',
+  Staff: '⚕', 'Sword and Shield': '🛡', Wand: '🪄',
 };
 
 const TIER_COLORS: Record<Tier, string> = {
@@ -23,9 +23,9 @@ interface Props {
 }
 
 export function WeaponToggleItem({ weapon, owned, onToggle, characterMap }: Props) {
-  const charName = weapon.character_id
-    ? (characterMap[weapon.character_id]?.name ?? 'Universal')
-    : 'Universal';
+  const charNames = weapon.character_ids.length
+    ? weapon.character_ids.map(id => characterMap[id]?.name).filter(Boolean).join(', ')
+    : null;
 
   return (
     <motion.button
@@ -36,23 +36,51 @@ export function WeaponToggleItem({ weapon, owned, onToggle, characterMap }: Prop
       whileTap={{ scale: 0.98 }}
       onClick={onToggle}
     >
-      <span className="text-white/40 text-base flex-shrink-0">
-        {WEAPON_ICONS[weapon.weapon_type] ?? '•'}
-      </span>
+      <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden bg-white/[0.04]">
+        {weapon.image_url ? (
+          <img src={weapon.image_url} alt={weapon.weapon_type} className="w-7 h-7 object-contain" />
+        ) : (
+          <span className="text-white/40 text-base">{WEAPON_ICONS[weapon.weapon_type] ?? '•'}</span>
+        )}
+      </div>
 
       <div className="flex-1 min-w-0 text-left">
         <div className="flex items-center gap-1.5 mb-0.5">
           <span className="text-[9px] font-mono font-bold" style={{ color: TIER_COLORS[weapon.tier] }}>
             {weapon.tier}
           </span>
-          <span className="text-[9px] font-mono text-white/30">{charName}</span>
+          {weapon.weapon_set_name && (
+            <span className="text-[9px] font-mono text-white/30">· {weapon.weapon_set_name}</span>
+          )}
         </div>
+
         <div className="text-[12px] font-mono text-white/80 leading-tight truncate">
           {weapon.name}
         </div>
+
+        {(weapon.main_stat || weapon.sub_stat) && (
+          <div className="flex items-center gap-2 mt-0.5">
+            {weapon.main_stat && (
+              <span className="text-[9px] font-mono text-white/35">{weapon.main_stat}</span>
+            )}
+            {weapon.main_stat && weapon.sub_stat && (
+              <span className="text-[9px] font-mono text-white/20">·</span>
+            )}
+            {weapon.sub_stat && (
+              <span className="text-[9px] font-mono text-[#F5C84B]/50">{weapon.sub_stat}</span>
+            )}
+          </div>
+        )}
+
         {weapon.passive_description && (
           <p className="text-[10px] font-mono text-white/40 line-clamp-2 mt-0.5 leading-tight">
             {weapon.passive_description}
+          </p>
+        )}
+
+        {charNames && (
+          <p className="text-[9px] font-mono text-white/25 mt-0.5 truncate">
+            {charNames}
           </p>
         )}
       </div>
