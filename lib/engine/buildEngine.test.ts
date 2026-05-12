@@ -147,6 +147,27 @@ describe('resolveBuild', () => {
     });
     expect(result.slots[0].ring.allOwnedMatchCount).toBeGreaterThan(0);
   });
+
+  it('isMetapick is true when character.boss_rank is S', () => {
+    const sRankChar: Character = { ...character, boss_rank: 'S' };
+    const chars = new Map<string, Character>([['escanor', sRankChar]]);
+    const result = resolveBuild({ ...makeInput(['watcherRing']), characters: chars });
+    expect(result.slots[0].isMetapick).toBe(true);
+  });
+
+  it('isMetapick is false when character.boss_rank is A', () => {
+    const aRankChar: Character = { ...character, boss_rank: 'A' };
+    const chars = new Map<string, Character>([['escanor', aRankChar]]);
+    const result = resolveBuild({ ...makeInput(['watcherRing']), characters: chars });
+    expect(result.slots[0].isMetapick).toBe(false);
+  });
+
+  it('isMetapick is false when character.boss_rank is null', () => {
+    const noRankChar: Character = { ...character, boss_rank: null };
+    const chars = new Map<string, Character>([['escanor', noRankChar]]);
+    const result = resolveBuild({ ...makeInput(['watcherRing']), characters: chars });
+    expect(result.slots[0].isMetapick).toBe(false);
+  });
 });
 
 describe('applyMyGearMode', () => {

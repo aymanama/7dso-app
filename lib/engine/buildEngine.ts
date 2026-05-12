@@ -144,7 +144,6 @@ export function calcVerdict(bisCount: number, total: number): Verdict {
   return 'high_risk';
 }
 
-const METAPICK_IDS = new Set(['escanor', 'meliodas', 'elaine', 'king', 'jericho', 'guila', 'diane', 'clotho']);
 
 function resolveTeam(
   boss: Boss,
@@ -175,7 +174,7 @@ function resolveTeam(
     const synergyScore = Math.max(0, 100 - subCount * 18);
     const isOwned = !hasRoster || ownedCharacterIds.has(slot.character_id);
     const countersWeakness = !!(character && boss.weakness_elements.includes(character.primary_element));
-    const isMetapick = METAPICK_IDS.has(slot.character_id);
+    const isMetapick = character?.boss_rank === 'S';
 
     return { character, slotIndex: slot.slot_index, ring, necklace, earring, subCount, synergyScore, isOwned, countersWeakness, isMetapick };
   });
