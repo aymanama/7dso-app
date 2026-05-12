@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils/cn';
 import type { ArmorPiece, Tier } from '@/types/game';
@@ -40,7 +41,7 @@ export function ArmorToggleItem({ armor, owned, onToggle }: Props) {
     >
       <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden bg-white/[0.04]">
         {armor.image_url ? (
-          <img src={armor.image_url} alt={armor.name} className="w-7 h-7 object-contain" />
+          <Image src={armor.image_url} alt={armor.name} width={28} height={28} className="object-contain" />
         ) : (
           <span className="text-white/40 text-base">{SLOT_ICONS[armor.slot]}</span>
         )}

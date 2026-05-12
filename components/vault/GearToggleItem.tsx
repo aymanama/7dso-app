@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils/cn';
 import type { Accessory, Tier } from '@/types/game';
@@ -28,7 +29,7 @@ export function GearToggleItem({ accessory, owned, onToggle }: Props) {
     >
       <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden bg-white/[0.04]">
         {accessory.image_url ? (
-          <img src={accessory.image_url} alt={accessory.name} className="w-7 h-7 object-contain" />
+          <Image src={accessory.image_url} alt={accessory.name} width={28} height={28} className="object-contain" />
         ) : (
           <span className="text-white/40 text-base">{SLOT_ICONS[accessory.slot]}</span>
         )}

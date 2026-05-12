@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils/cn';
 import type { Weapon, Tier, Character } from '@/types/game';
@@ -38,7 +39,7 @@ export function WeaponToggleItem({ weapon, owned, onToggle, characterMap }: Prop
     >
       <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden bg-white/[0.04]">
         {weapon.image_url ? (
-          <img src={weapon.image_url} alt={weapon.weapon_type} className="w-7 h-7 object-contain" />
+          <Image src={weapon.image_url} alt={weapon.weapon_type} width={28} height={28} className="object-contain" />
         ) : (
           <span className="text-white/40 text-base">{WEAPON_ICONS[weapon.weapon_type] ?? '•'}</span>
         )}

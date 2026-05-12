@@ -171,12 +171,6 @@ describe('resolveBuild', () => {
 });
 
 describe('applyMyGearMode', () => {
-  const makeGear = (overrides: Partial<import('@/types/game').ResolvedGear>): import('@/types/game').ResolvedGear => ({
-    item: bisRing, isBis: false, isOwned: false, matchedStatTag: null,
-    bisItem: bisRing, isCounter: false, farmFromBoss: 'Galland', allOwnedMatchCount: 0,
-    ...overrides,
-  });
-
   it('does not touch owned gear', () => {
     const build = resolveBuild(makeInput(['watcherRing']));
     const result = applyMyGearMode(build);

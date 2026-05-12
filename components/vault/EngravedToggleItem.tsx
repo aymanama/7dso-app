@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils/cn';
 import type { Engravement, Tier } from '@/types/game';
@@ -27,7 +28,7 @@ export function EngravedToggleItem({ engravement, characterName, owned, onToggle
     >
       <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg overflow-hidden bg-white/[0.04]">
         {engravement.image_url ? (
-          <img src={engravement.image_url} alt={engravement.name} className="w-7 h-7 object-contain" />
+          <Image src={engravement.image_url} alt={engravement.name} width={28} height={28} className="object-contain" />
         ) : (
           <span className="text-white/40 text-xs font-mono font-bold">
             {characterName.slice(0, 2).toUpperCase()}
