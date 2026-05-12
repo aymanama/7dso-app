@@ -44,14 +44,14 @@ export function EngravedToggleItem({ engravement, characterName, owned, onToggle
           <span className="text-[9px] font-mono text-white/30">· {characterName}</span>
         </div>
         <div className="text-[12px] font-mono text-white/80 leading-tight truncate">{engravement.name}</div>
-        {engravement.engravement_type && (
+        {engravement.special_skill_name && (
           <div className="text-[9px] font-mono text-white/35 mt-0.5 uppercase tracking-wide">
-            {engravement.engravement_type}
+            {engravement.special_skill_name}
           </div>
         )}
-        {engravement.effect_description && (
+        {engravement.static_sub_stats.length > 0 && (
           <div className="text-[9px] font-mono text-white/25 mt-0.5 truncate">
-            {engravement.effect_description}
+            {engravement.static_sub_stats.join(' · ')}
           </div>
         )}
       </div>

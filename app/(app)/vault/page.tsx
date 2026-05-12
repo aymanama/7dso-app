@@ -149,11 +149,9 @@ export default function VaultPage() {
   const filteredEngravements = useMemo(() =>
     engravements
       .filter(e => {
-        const charName = (e.character_id ? (characterMap[e.character_id]?.name ?? e.character_id) : '');
+        const charName = characterMap[e.character_id]?.name ?? e.character_id;
         const q = debouncedSearch.toLowerCase();
-        return e.name.toLowerCase().includes(q)
-          || charName.toLowerCase().includes(q)
-          || e.engravement_type.toLowerCase().includes(q);
+        return e.name.toLowerCase().includes(q) || charName.toLowerCase().includes(q);
       })
       .filter(e => !showUnownedOnly || !engravementOwned[e.id]),
     [engravements, debouncedSearch, showUnownedOnly, engravementOwned, characterMap]
@@ -187,12 +185,12 @@ export default function VaultPage() {
   const groupedEngravements = useMemo(() => {
     const map: Record<string, Engravement[]> = {};
     for (const e of filteredEngravements) {
-      const key = e.engravement_type || 'Other';
-      if (!map[key]) map[key] = [];
-      map[key].push(e);
+      const charName = characterMap[e.character_id]?.name ?? e.character_id;
+      if (!map[charName]) map[charName] = [];
+      map[charName].push(e);
     }
     return map;
-  }, [filteredEngravements]);
+  }, [filteredEngravements, characterMap]);
 
   const activeOwnedCount = activeTab === 'accessories'
     ? accessories.filter(a => accessoryOwned[a.id]).length
@@ -352,13 +350,13 @@ export default function VaultPage() {
           {filteredEngravements.length === 0 ? (
             <EmptyState label={engravements.length === 0 ? 'engravements' : 'matching items'} />
           ) : (
-            Object.entries(groupedEngravements).map(([engType, items]) => {
+            Object.entries(groupedEngravements).map(([charName, items]) => {
               const ownedCount = items.filter(e => engravementOwned[e.id]).length;
               return (
-                <div key={engType} className="mb-4">
+                <div key={charName} className="mb-4">
                   <div className="px-5 py-2 border-b border-white/[0.04] flex items-center justify-between">
                     <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest">
-                      {engType}
+                      {charName}
                     </span>
                     <span className="text-[10px] font-mono text-white/30">
                       {ownedCount}/{items.length} owned
@@ -369,6 +367,7 @@ export default function VaultPage() {
                       <EngravementToggleItem
                         key={e.id}
                         engravement={e}
+                        characterName={charName}
                         owned={!!engravementOwned[e.id]}
                         onToggle={() => toggleEngravement(e.id)}
                       />

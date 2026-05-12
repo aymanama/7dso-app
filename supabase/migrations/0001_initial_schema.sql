@@ -78,18 +78,22 @@ create policy "users manage own characters" on user_characters
 
 -- ─── engravements ─────────────────────────────────────────────────────────────
 create table if not exists engravements (
-  id                 text primary key,
-  name               text not null,
-  tier               text not null check (tier in ('SSR','SR')),
-  character_id       text references characters(id),
-  slot               text not null,
-  engravement_type   text not null,
-  effect_description text,
-  max_effect         text,
-  image_url          text,
-  drop_sources       text[] default '{}',
-  sort_order         integer default 0,
-  updated_at         timestamptz default now()
+  id                  text primary key,
+  name                text not null,
+  character_id        text references characters(id),
+  tier                text not null check (tier in ('SSR','SR')),
+  description         text,
+  main_stats          text[] not null default '{}',
+  static_sub_stats    text[] not null default '{}',
+  special_skill_name  text,
+  special_skill_lv1   text,
+  special_skill_lv2   text,
+  special_skill_lv3   text,
+  crafting_gold       integer,
+  crafting_time_min   integer,
+  crafting_materials  text[] not null default '{}',
+  image_url           text,
+  sort_order          integer default 0
 );
 
 -- ─── user_engravements ────────────────────────────────────────────────────────
