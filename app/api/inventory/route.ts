@@ -38,3 +38,43 @@ export async function GET(req: Request) {
 
   return NextResponse.json(map);
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const url = new URL(req.url);
+    const type = url.searchParams.get('type') ?? 'accessory';
+    const { userId, itemId, owned } = await req.json();
+
+    const supabase = createServerClient();
+
+    if (type === 'armor') {
+      const { error } = await supabase.from('user_armor').upsert(
+        { user_id: userId, armor_id: itemId, owned },
+        { onConflict: 'user_id,armor_id' }
+      );
+      if (error) throw error;
+    } else if (type === 'weapon') {
+      const { error } = await supabase.from('user_weapons').upsert(
+        { user_id: userId, weapon_id: itemId, owned },
+        { onConflict: 'user_id,weapon_id' }
+      );
+      if (error) throw error;
+    } else if (type === 'engravement') {
+      const { error } = await supabase.from('user_engravements').upsert(
+        { user_id: userId, engravement_id: itemId, owned },
+        { onConflict: 'user_id,engravement_id' }
+      );
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('user_inventory').upsert(
+        { user_id: userId, accessory_id: itemId, owned },
+        { onConflict: 'user_id,accessory_id' }
+      );
+      if (error) throw error;
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
+}

@@ -1,6 +1,5 @@
 'use client';
 import { useState, useCallback, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
 
 export function useWeaponInventory(
   userId: string | null,
@@ -15,11 +14,11 @@ export function useWeaponInventory(
     ownedRef.current = newState;
     setOwned(newState);
     if (!userId) return;
-    const supabase = createClient();
-    await supabase.from('user_weapons').upsert(
-      { user_id: userId, weapon_id: weaponId, owned: next },
-      { onConflict: 'user_id,weapon_id' }
-    );
+    await fetch('/api/inventory?type=weapon', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, itemId: weaponId, owned: next }),
+    });
   }, [userId]);
 
   const setMany = useCallback((map: Record<string, boolean>) => {

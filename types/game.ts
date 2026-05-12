@@ -188,18 +188,13 @@ export interface FarmEntry {
 export interface Engravement {
   id: string;
   name: string;
-  character_id: string;
   tier: Tier;
-  description: string | null;
-  main_stats: string[];
-  static_sub_stats: string[];
-  special_skill_name: string | null;
-  special_skill_lv1: string | null;
-  special_skill_lv2: string | null;
-  special_skill_lv3: string | null;
-  crafting_gold: number | null;
-  crafting_time_min: number | null;
-  crafting_materials: string[];
+  character_id: string | null;
+  slot: string;
+  engravement_type: string;
+  effect_description: string | null;
+  max_effect: string | null;
   image_url: string | null;
+  drop_sources: string[];
   sort_order: number;
 }

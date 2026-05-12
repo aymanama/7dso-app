@@ -1,6 +1,5 @@
 'use client';
 import { useState, useCallback, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
 
 export function useEngravementInventory(userId: string | null, initial: Record<string, boolean> = {}) {
   const ownedRef = useRef(initial);
@@ -12,11 +11,11 @@ export function useEngravementInventory(userId: string | null, initial: Record<s
     ownedRef.current = newState;
     setOwned(newState);
     if (!userId) return;
-    const supabase = createClient();
-    await supabase.from('user_engravements').upsert(
-      { user_id: userId, engravement_id: engravementId, owned: next },
-      { onConflict: 'user_id,engravement_id' }
-    );
+    await fetch('/api/inventory?type=engravement', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, itemId: engravementId, owned: next }),
+    });
   }, [userId]);
 
   const setMany = useCallback((map: Record<string, boolean>) => {

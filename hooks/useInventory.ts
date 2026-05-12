@@ -1,6 +1,5 @@
 'use client';
 import { useState, useCallback, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
 
 export function useInventory(userId: string | null, initial: Record<string, boolean> = {}) {
   const ownedRef = useRef(initial);
@@ -12,11 +11,11 @@ export function useInventory(userId: string | null, initial: Record<string, bool
     ownedRef.current = newState;
     setOwned(newState);
     if (!userId) return;
-    const supabase = createClient();
-    await supabase.from('user_inventory').upsert(
-      { user_id: userId, accessory_id: accessoryId, owned: next },
-      { onConflict: 'user_id,accessory_id' }
-    );
+    await fetch('/api/inventory?type=accessory', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, itemId: accessoryId, owned: next }),
+    });
   }, [userId]);
 
   const setMany = useCallback((map: Record<string, boolean>) => {
