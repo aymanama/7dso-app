@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { resolveAllBuilds } from '@/lib/engine/buildEngine';
 import type { Boss, BuildSlot, Accessory, Character, FarmEntry } from '@/types/game';
@@ -9,7 +9,8 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const userId = url.searchParams.get('userId');
 
-  const supabase = createServerClient();
+  const adminSupabase  = createAdminClient();
+  const serverSupabase = createServerClient();
 
   const [
     { data: allBosses },
@@ -18,12 +19,12 @@ export async function GET(req: Request) {
     { data: allCharacters },
     { data: inventory },
   ] = await Promise.all([
-    supabase.from('bosses').select('*'),
-    supabase.from('builds').select('*').order('team_index').order('slot_index'),
-    supabase.from('accessories').select('*'),
-    supabase.from('characters').select('*'),
+    adminSupabase.from('bosses').select('*'),
+    adminSupabase.from('builds').select('*').order('team_index').order('slot_index'),
+    adminSupabase.from('accessories').select('*'),
+    adminSupabase.from('characters').select('*'),
     userId
-      ? supabase.from('user_inventory').select('accessory_id').eq('user_id', userId).eq('owned', true)
+      ? serverSupabase.from('user_inventory').select('accessory_id').eq('user_id', userId).eq('owned', true)
       : Promise.resolve({ data: [] }),
   ]);
 

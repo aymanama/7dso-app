@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { resolveAllBuilds } from '@/lib/engine/buildEngine';
 import type { Boss, BuildSlot, Accessory, Character } from '@/types/game';
@@ -8,7 +8,8 @@ export async function GET(req: Request, { params }: { params: { bossId: string }
   const url = new URL(req.url);
   const userId = url.searchParams.get('userId');
 
-  const supabase = createServerClient();
+  const adminSupabase  = createAdminClient();   // public game data
+  const serverSupabase = createServerClient();  // user inventory (RLS)
 
   const [
     { data: boss },
@@ -19,16 +20,16 @@ export async function GET(req: Request, { params }: { params: { bossId: string }
     { data: inventory },
     { data: roster },
   ] = await Promise.all([
-    supabase.from('bosses').select('*').eq('id', bossId).single(),
-    supabase.from('builds').select('*').eq('boss_id', bossId).order('team_index').order('slot_index'),
-    supabase.from('accessories').select('*'),
-    supabase.from('characters').select('*'),
-    supabase.from('bosses').select('*'),
+    adminSupabase.from('bosses').select('*').eq('id', bossId).single(),
+    adminSupabase.from('builds').select('*').eq('boss_id', bossId).order('team_index').order('slot_index'),
+    adminSupabase.from('accessories').select('*'),
+    adminSupabase.from('characters').select('*'),
+    adminSupabase.from('bosses').select('*'),
     userId
-      ? supabase.from('user_inventory').select('accessory_id').eq('user_id', userId).eq('owned', true)
+      ? serverSupabase.from('user_inventory').select('accessory_id').eq('user_id', userId).eq('owned', true)
       : Promise.resolve({ data: [] }),
     userId
-      ? supabase.from('user_characters').select('character_id').eq('user_id', userId).eq('owned', true)
+      ? serverSupabase.from('user_characters').select('character_id').eq('user_id', userId).eq('owned', true)
       : Promise.resolve({ data: [] }),
   ]);
 
