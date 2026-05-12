@@ -170,3 +170,22 @@ export interface FarmEntry {
   impactScore: number;
   dropBoss: string | null;
 }
+
+export interface Engravement {
+  id: string;
+  name: string;
+  character_id: string;
+  tier: Tier;
+  description: string | null;
+  main_stats: string[];
+  static_sub_stats: string[];
+  special_skill_name: string | null;
+  special_skill_lv1: string | null;
+  special_skill_lv2: string | null;
+  special_skill_lv3: string | null;
+  crafting_gold: number | null;
+  crafting_time_min: number | null;
+  crafting_materials: string[];
+  image_url: string | null;
+  sort_order: number;
+}

@@ -10,7 +10,13 @@ export async function GET(req: Request) {
   const supabase = createServerClient();
   const map: Record<string, boolean> = {};
 
-  if (type === 'armor') {
+  if (type === 'engravement') {
+    const { data } = await supabase
+      .from('user_engravements')
+      .select('engravement_id, owned')
+      .eq('user_id', userId);
+    for (const row of data ?? []) map[row.engravement_id] = row.owned;
+  } else if (type === 'armor') {
     const { data } = await supabase
       .from('user_armor')
       .select('armor_id, owned')

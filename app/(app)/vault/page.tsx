@@ -3,14 +3,16 @@ import { useState, useEffect, useMemo } from 'react';
 import { GearToggleItem } from '@/components/vault/GearToggleItem';
 import { ArmorToggleItem } from '@/components/vault/ArmorToggleItem';
 import { WeaponToggleItem, WEAPON_ICONS } from '@/components/vault/WeaponToggleItem';
+import { EngravedToggleItem } from '@/components/vault/EngravedToggleItem';
 import { useAnonymousAuth } from '@/hooks/useAnonymousAuth';
 import { useInventory } from '@/hooks/useInventory';
 import { useArmorInventory } from '@/hooks/useArmorInventory';
 import { useWeaponInventory } from '@/hooks/useWeaponInventory';
+import { useEngravementInventory } from '@/hooks/useEngravementInventory';
 import { cn } from '@/lib/utils/cn';
-import type { Accessory, ArmorPiece, Weapon, Character } from '@/types/game';
+import type { Accessory, ArmorPiece, Weapon, Character, Engravement } from '@/types/game';
 
-type Tab = 'accessories' | 'armor' | 'weapons';
+type Tab = 'accessories' | 'armor' | 'weapons' | 'engravements';
 const SLOT_ORDER = ['ring', 'necklace', 'earring'] as const;
 
 function EmptyState({ label }: { label: string }) {
@@ -56,6 +58,10 @@ export default function VaultPage() {
   const [weaponsLoading, setWeaponsLoading] = useState(true);
   const { owned: weaponOwned, toggle: toggleWeapon, setMany: setManyWeapon } = useWeaponInventory(userId);
 
+  const [engravements, setEngravements] = useState<Engravement[]>([]);
+  const [engravementsLoading, setEngravementsLoading] = useState(true);
+  const { owned: engravementOwned, toggle: toggleEngravement, setMany: setManyEngravement } = useEngravementInventory(userId);
+
   const [characterMap, setCharacterMap] = useState<Record<string, Character>>({});
 
   useEffect(() => {
@@ -82,6 +88,12 @@ export default function VaultPage() {
       .then(setWeapons)
       .finally(() => setWeaponsLoading(false));
 
+    fetch('/api/engravements')
+      .then(r => r.json())
+      .then(data => Array.isArray(data) ? data : [])
+      .then(setEngravements)
+      .finally(() => setEngravementsLoading(false));
+
     fetch('/api/characters')
       .then(r => r.json())
       .then((chars: Character[]) => {
@@ -107,7 +119,11 @@ export default function VaultPage() {
       .then(r => r.json())
       .then((data: Record<string, boolean>) => setManyWeapon(data))
       .catch(() => {});
-  }, [userId, setManyAccessory, setManyArmor, setManyWeapon]);
+    fetch(`/api/inventory?userId=${userId}&type=engravement`)
+      .then(r => r.json())
+      .then((data: Record<string, boolean>) => setManyEngravement(data))
+      .catch(() => {});
+  }, [userId, setManyAccessory, setManyArmor, setManyWeapon, setManyEngravement]);
 
   const filteredAccessories = useMemo(() =>
     accessories
@@ -128,6 +144,17 @@ export default function VaultPage() {
       .filter(w => w.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
       .filter(w => !showUnownedOnly || !weaponOwned[w.id]),
     [weapons, debouncedSearch, showUnownedOnly, weaponOwned]
+  );
+
+  const filteredEngravements = useMemo(() =>
+    engravements
+      .filter(e => {
+        const charName = characterMap[e.character_id]?.name ?? e.character_id;
+        const q = debouncedSearch.toLowerCase();
+        return e.name.toLowerCase().includes(q) || charName.toLowerCase().includes(q);
+      })
+      .filter(e => !showUnownedOnly || !engravementOwned[e.id]),
+    [engravements, debouncedSearch, showUnownedOnly, engravementOwned, characterMap]
   );
 
   const groupedAccessories = useMemo(() => {
@@ -155,20 +182,35 @@ export default function VaultPage() {
     return map;
   }, [filteredWeapons]);
 
+  const groupedEngravements = useMemo(() => {
+    const map: Record<string, Engravement[]> = {};
+    for (const e of filteredEngravements) {
+      const charName = characterMap[e.character_id]?.name ?? e.character_id;
+      if (!map[charName]) map[charName] = [];
+      map[charName].push(e);
+    }
+    return map;
+  }, [filteredEngravements, characterMap]);
+
   const activeOwnedCount = activeTab === 'accessories'
     ? accessories.filter(a => accessoryOwned[a.id]).length
     : activeTab === 'armor'
     ? armorPieces.filter(a => armorOwned[a.id]).length
+    : activeTab === 'engravements'
+    ? engravements.filter(e => engravementOwned[e.id]).length
     : weapons.filter(w => weaponOwned[w.id]).length;
 
   const activeTotalCount = activeTab === 'accessories'
     ? accessories.length
     : activeTab === 'armor'
     ? armorPieces.length
+    : activeTab === 'engravements'
+    ? engravements.length
     : weapons.length;
 
   const isLoading = activeTab === 'accessories' ? accessoriesLoading
     : activeTab === 'armor' ? armorLoading
+    : activeTab === 'engravements' ? engravementsLoading
     : weaponsLoading;
 
   return (
@@ -208,8 +250,8 @@ export default function VaultPage() {
           </span>
         </div>
 
-        <div className="flex gap-2">
-          {(['accessories', 'armor', 'weapons'] as Tab[]).map(tab => (
+        <div className="flex gap-2 flex-wrap">
+          {(['accessories', 'armor', 'weapons', 'engravements'] as Tab[]).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -295,6 +337,39 @@ export default function VaultPage() {
                         armor={a}
                         owned={!!armorOwned[a.id]}
                         onToggle={() => toggleArmor(a.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : activeTab === 'engravements' ? (
+        <div>
+          {filteredEngravements.length === 0 ? (
+            <EmptyState label={engravements.length === 0 ? 'engravements' : 'matching items'} />
+          ) : (
+            Object.entries(groupedEngravements).map(([charName, items]) => {
+              const ownedCount = items.filter(e => engravementOwned[e.id]).length;
+              return (
+                <div key={charName} className="mb-4">
+                  <div className="px-5 py-2 border-b border-white/[0.04] flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest">
+                      {charName}
+                    </span>
+                    <span className="text-[10px] font-mono text-white/30">
+                      {ownedCount}/{items.length} owned
+                    </span>
+                  </div>
+                  <div className="divide-y divide-white/[0.04]">
+                    {items.map(e => (
+                      <EngravedToggleItem
+                        key={e.id}
+                        engravement={e}
+                        characterName={charName}
+                        owned={!!engravementOwned[e.id]}
+                        onToggle={() => toggleEngravement(e.id)}
                       />
                     ))}
                   </div>
