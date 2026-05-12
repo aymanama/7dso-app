@@ -136,7 +136,7 @@ function resolveAlternativeSet(
   return bestSetId;
 }
 
-function calcVerdict(bisCount: number, total: number): Verdict {
+export function calcVerdict(bisCount: number, total: number): Verdict {
   const pct = bisCount / total;
   if (pct === 1)   return 'perfect';
   if (pct >= 0.75) return 'battle_ready';
@@ -217,6 +217,26 @@ export function resolveAllBuilds(input: EngineInput): ResolvedBuild[] {
 
   teams.sort((a, b) => b.ownedCharacterCount - a.ownedCharacterCount);
   return teams;
+}
+
+export function applyMyGearMode(build: ResolvedBuild): ResolvedBuild {
+  const neutralize = (gear: ResolvedGear): ResolvedGear =>
+    gear.isOwned ? gear : { ...gear, isBis: true };
+
+  const slots = build.slots.map(slot => ({
+    ...slot,
+    ring:     neutralize(slot.ring),
+    necklace: neutralize(slot.necklace),
+    earring:  neutralize(slot.earring),
+  }));
+
+  const bisCount = slots.reduce(
+    (sum, slot) =>
+      sum + [slot.ring, slot.necklace, slot.earring].filter(g => g.isBis).length,
+    0,
+  );
+
+  return { ...build, slots, bisCount, verdict: calcVerdict(bisCount, build.totalSlots) };
 }
 
 // Backward-compat shim for tests

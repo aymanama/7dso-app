@@ -5,23 +5,8 @@ import { BossSpecCard } from '@/components/strategy/BossSpecCard';
 import { CharacterCard } from '@/components/strategy/CharacterCard';
 import { StrategyVerdict } from '@/components/strategy/StrategyVerdict';
 import { useAnonymousAuth } from '@/hooks/useAnonymousAuth';
-import type { Boss, ResolvedBuild, ResolvedGear, Verdict } from '@/types/game';
-
-// In "My Gear" mode, unowned slots show the BiS target without any FARM badge.
-function applyMyGearMode(build: ResolvedBuild): ResolvedBuild {
-  const neutralize = (gear: ResolvedGear): ResolvedGear =>
-    gear.isOwned ? gear : { ...gear, isBis: true };
-
-  return {
-    ...build,
-    slots: build.slots.map(slot => ({
-      ...slot,
-      ring:     neutralize(slot.ring),
-      necklace: neutralize(slot.necklace),
-      earring:  neutralize(slot.earring),
-    })),
-  };
-}
+import { applyMyGearMode } from '@/lib/engine/buildEngine';
+import type { Boss, ResolvedBuild, Verdict } from '@/types/game';
 
 export default function StrategyPage() {
   const userId = useAnonymousAuth();

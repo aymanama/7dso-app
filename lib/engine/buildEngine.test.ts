@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveBuild } from './buildEngine';
+import { resolveBuild, applyMyGearMode } from './buildEngine';
 import type { Boss, BuildSlot, Accessory, Character } from '@/types/game';
 
 // ─── shared fixtures ──────────────────────────────────────────────────────────
@@ -146,5 +146,41 @@ describe('resolveBuild', () => {
       ownedIds: new Set(['offListRing']),
     });
     expect(result.slots[0].ring.allOwnedMatchCount).toBeGreaterThan(0);
+  });
+});
+
+describe('applyMyGearMode', () => {
+  const makeGear = (overrides: Partial<import('@/types/game').ResolvedGear>): import('@/types/game').ResolvedGear => ({
+    item: bisRing, isBis: false, isOwned: false, matchedStatTag: null,
+    bisItem: bisRing, isCounter: false, farmFromBoss: 'Galland', allOwnedMatchCount: 0,
+    ...overrides,
+  });
+
+  it('does not touch owned gear', () => {
+    const build = resolveBuild(makeInput(['watcherRing']));
+    const result = applyMyGearMode(build);
+    // watcherRing is owned + BiS — should remain unchanged
+    expect(result.slots[0].ring.isBis).toBe(true);
+    expect(result.slots[0].ring.isOwned).toBe(true);
+  });
+
+  it('sets isBis:true on unowned slots', () => {
+    const build = resolveBuild(makeInput([]));
+    const result = applyMyGearMode(build);
+    expect(result.slots[0].ring.isBis).toBe(true);
+    expect(result.slots[0].necklace.isBis).toBe(true);
+    expect(result.slots[0].earring.isBis).toBe(true);
+  });
+
+  it('recomputes bisCount and verdict after neutralising unowned slots', () => {
+    // User owns nothing → original verdict is high_risk, bisCount = 0
+    const build = resolveBuild(makeInput([]));
+    expect(build.verdict).toBe('high_risk');
+    expect(build.bisCount).toBe(0);
+
+    const result = applyMyGearMode(build);
+    // After applyMyGearMode, all 3 slots count as BiS → perfect
+    expect(result.bisCount).toBe(3);
+    expect(result.verdict).toBe('perfect');
   });
 });
