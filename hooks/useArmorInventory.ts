@@ -1,19 +1,19 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 export function useArmorInventory(
   userId: string | null,
   initial: Record<string, boolean> = {}
 ) {
+  const ownedRef = useRef(initial);
   const [owned, setOwned] = useState(initial);
 
   const toggle = useCallback(async (armorId: string) => {
-    let next = false;
-    setOwned(prev => {
-      next = !prev[armorId];
-      return { ...prev, [armorId]: next };
-    });
+    const next = !ownedRef.current[armorId];
+    const newState = { ...ownedRef.current, [armorId]: next };
+    ownedRef.current = newState;
+    setOwned(newState);
     if (!userId) return;
     const supabase = createClient();
     await supabase.from('user_armor').upsert(
@@ -23,6 +23,7 @@ export function useArmorInventory(
   }, [userId]);
 
   const setMany = useCallback((map: Record<string, boolean>) => {
+    ownedRef.current = map;
     setOwned(map);
   }, []);
 
