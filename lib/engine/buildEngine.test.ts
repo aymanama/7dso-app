@@ -8,6 +8,7 @@ const boss: Boss = {
   id: 'galland', name: 'Galland', short_name: 'Galland', portrait_url: null,
   element_id: 'dark', weakness_elements: ['holy'], threat: 95, kind: 'Dungeon',
   tags: [], blurb: '', bis_set_ids: ['voidedge'], difficulties: ['Nightmare', 'Hell', 'Abyss'],
+  content_order: 1, mechanics: [], min_gear_score: 50,
 };
 
 const bisRing: Accessory = {

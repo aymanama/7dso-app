@@ -126,6 +126,9 @@ export interface Boss {
   blurb: string;
   bis_set_ids: string[];
   difficulties: string[];
+  content_order: number;
+  mechanics: string[];
+  min_gear_score: number;
   updated_at?: string;
 }
 
