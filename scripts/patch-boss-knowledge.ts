@@ -29,8 +29,9 @@ const { bosses } = JSON.parse(readFileSync(join(process.cwd(), 'scripts/data/bos
 
 async function main() {
   console.log('Patching boss knowledge…\n');
+  let failCount = 0;
   for (const boss of bosses) {
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from('bosses')
       .update({
         content_order:  boss.content_order,
@@ -38,14 +39,20 @@ async function main() {
         min_gear_score: boss.min_gear_score,
         difficulties:   boss.difficulties,
       })
-      .eq('id', boss.id);
-    if (error) {
-      console.error(`  FAILED ${boss.id}: ${error.message}`);
+      .eq('id', boss.id)
+      .select('id');
+    if (error || !data?.length) {
+      console.error(`  FAILED ${boss.id}: ${error?.message ?? 'no rows updated (boss not found in DB)'}`);
+      failCount++;
     } else {
       console.log(`  ✓ ${boss.id}  #${boss.content_order}  min:${boss.min_gear_score}%  ${boss.difficulties.join('/')}`);
     }
   }
-  console.log('\nDone.');
+  if (failCount > 0) {
+    console.error(`\n${failCount} boss(es) failed to patch.`);
+    process.exit(1);
+  }
+  console.log(`\n✓ All ${bosses.length} bosses patched. Done.`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
