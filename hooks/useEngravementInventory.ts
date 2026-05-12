@@ -6,15 +6,18 @@ export function useEngravementInventory(userId: string | null, initial: Record<s
   const [owned, setOwned] = useState(initial);
 
   const toggle = useCallback(async (engravementId: string) => {
-    const next = !owned[engravementId];
-    setOwned(prev => ({ ...prev, [engravementId]: next }));
+    let next = false;
+    setOwned(prev => {
+      next = !prev[engravementId];
+      return { ...prev, [engravementId]: next };
+    });
     if (!userId) return;
     const supabase = createClient();
     await supabase.from('user_engravements').upsert(
       { user_id: userId, engravement_id: engravementId, owned: next },
       { onConflict: 'user_id,engravement_id' }
     );
-  }, [userId, owned]);
+  }, [userId]);
 
   const setMany = useCallback((map: Record<string, boolean>) => {
     setOwned(map);

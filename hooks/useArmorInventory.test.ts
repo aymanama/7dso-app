@@ -60,4 +60,24 @@ describe('useArmorInventory', () => {
     expect(result.current.owned['armor1']).toBe(true);
     expect(result.current.owned['armor2']).toBe(false);
   });
+
+  it('rapid double-toggle produces correct DB calls (no stale closure)', async () => {
+    const { result } = renderHook(() =>
+      useArmorInventory('user-123', { armor1: false })
+    );
+    await act(async () => {
+      result.current.toggle('armor1');
+      result.current.toggle('armor1');
+    });
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    expect(mockUpsert).toHaveBeenNthCalledWith(1,
+      { user_id: 'user-123', armor_id: 'armor1', owned: true },
+      { onConflict: 'user_id,armor_id' }
+    );
+    expect(mockUpsert).toHaveBeenNthCalledWith(2,
+      { user_id: 'user-123', armor_id: 'armor1', owned: false },
+      { onConflict: 'user_id,armor_id' }
+    );
+    expect(result.current.owned['armor1']).toBe(false);
+  });
 });

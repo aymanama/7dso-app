@@ -59,4 +59,24 @@ describe('useWeaponInventory', () => {
     expect(result.current.owned['wpn1']).toBe(true);
     expect(result.current.owned['wpn2']).toBe(false);
   });
+
+  it('rapid double-toggle produces correct DB calls (no stale closure)', async () => {
+    const { result } = renderHook(() =>
+      useWeaponInventory('user-456', { wpn1: false })
+    );
+    await act(async () => {
+      result.current.toggle('wpn1');
+      result.current.toggle('wpn1');
+    });
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    expect(mockUpsert).toHaveBeenNthCalledWith(1,
+      { user_id: 'user-456', weapon_id: 'wpn1', owned: true },
+      { onConflict: 'user_id,weapon_id' }
+    );
+    expect(mockUpsert).toHaveBeenNthCalledWith(2,
+      { user_id: 'user-456', weapon_id: 'wpn1', owned: false },
+      { onConflict: 'user_id,weapon_id' }
+    );
+    expect(result.current.owned['wpn1']).toBe(false);
+  });
 });

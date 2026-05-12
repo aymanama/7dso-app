@@ -9,15 +9,18 @@ export function useWeaponInventory(
   const [owned, setOwned] = useState(initial);
 
   const toggle = useCallback(async (weaponId: string) => {
-    const next = !owned[weaponId];
-    setOwned(prev => ({ ...prev, [weaponId]: next }));
+    let next = false;
+    setOwned(prev => {
+      next = !prev[weaponId];
+      return { ...prev, [weaponId]: next };
+    });
     if (!userId) return;
     const supabase = createClient();
     await supabase.from('user_weapons').upsert(
       { user_id: userId, weapon_id: weaponId, owned: next },
       { onConflict: 'user_id,weapon_id' }
     );
-  }, [userId, owned]);
+  }, [userId]);
 
   const setMany = useCallback((map: Record<string, boolean>) => {
     setOwned(map);
