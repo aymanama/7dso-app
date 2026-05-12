@@ -134,11 +134,17 @@ async function scrapeCharacterPage(slug: string): Promise<ScrapedCharacter | nul
     if (/\bSSR\b/.test(bodyText)) tier = 'SSR';
   }
 
-  // Elements: extract from element icon image filenames
+  // Elements: only collect element icons that are co-located with weapon type icons
+  // (i.e. in the character header). Scanning the whole page picks up boss weakness
+  // tables and skill effect icons, producing false multi-element results.
   const elements: string[] = [];
-  $('img[src*="Icon_Element"]').each((_, el) => {
-    const element = elementFromImageSrc($(el).attr('src') ?? '');
-    if (element && !elements.includes(element)) elements.push(element);
+  $('img[src*="weapontype"]').each((_, weaponEl) => {
+    // Walk up two levels to find the weapon+element row container
+    const container = $(weaponEl).parent().parent();
+    container.find('img[src*="Icon_Element"]').each((_, elemEl) => {
+      const element = elementFromImageSrc($(elemEl).attr('src') ?? '');
+      if (element && !elements.includes(element)) elements.push(element);
+    });
   });
   // Fallback to neutral
   if (!elements.length) elements.push('neutral');
