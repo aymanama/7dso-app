@@ -7,7 +7,7 @@ import type { Boss, BuildSlot, Accessory, Character } from '@/types/game';
 const boss: Boss = {
   id: 'galland', name: 'Galland', short_name: 'Galland', portrait_url: null,
   element_id: 'dark', weakness_elements: ['holy'], threat: 95, kind: 'Dungeon',
-  tags: [], blurb: '', bis_set_ids: ['voidedge'],
+  tags: [], blurb: '', bis_set_ids: ['voidedge'], difficulties: ['Nightmare', 'Hell', 'Abyss'],
 };
 
 const bisRing: Accessory = {
