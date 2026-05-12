@@ -1,0 +1,197 @@
+{
+  "bosses": [
+    {
+      "id": "galland",
+      "content_order": 1,
+      "min_gear_score": 20,
+      "difficulties": ["Normal", "Hard", "Hell"],
+      "mechanics": [
+        "Opens with a 3-hit ground slam chain — use a Warden in slot 1 to absorb all hits",
+        "At 50% HP gains Holy Shield aura that blocks 30% of damage — Dark-element attackers strip it 2× faster",
+        "Combo finisher targets the lowest-HP ally — keep everyone above 35% HP before his turn",
+        "Phase 2 (≤30% HP): attack speed doubles — activate your team's timed-buff skills now"
+      ]
+    },
+    {
+      "id": "spiderNest",
+      "content_order": 2,
+      "min_gear_score": 20,
+      "difficulties": ["Normal", "Hard", "Hell"],
+      "mechanics": [
+        "Spawns 2 spider adds at 70% HP — kill adds immediately or they stack poison every 5 seconds",
+        "Web ground attack covers 60% of arena — dash-dodge through it or use a poison-immune character",
+        "At 40% HP the queen retreats to the ceiling and shoots projectiles — switch to ranged skill characters",
+        "Adds respawn every 30 seconds if the main boss is still above 20% HP — burst the boss down"
+      ]
+    },
+    {
+      "id": "golem",
+      "content_order": 3,
+      "min_gear_score": 25,
+      "difficulties": ["Normal", "Hard", "Hell"],
+      "mechanics": [
+        "Earth element — Wind and Ice characters deal 30% bonus damage throughout the whole fight",
+        "Stomp AoE covers a 6-meter radius — dash to arena edge when the slam animation begins",
+        "Summons earth pillars at 75% HP that block projectiles — reposition behind them for ranged attacks",
+        "Weak point (glowing core) exposed for 8 seconds during post-stomp recovery — use this window for burst"
+      ]
+    },
+    {
+      "id": "redDemon",
+      "content_order": 4,
+      "min_gear_score": 30,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare"],
+      "mechanics": [
+        "Classic Red Demon — Fire attacker with high base damage, Ice and Holy characters deal bonus damage",
+        "Hellfire AoE at 70% HP coats half the floor — move to the unlit half immediately",
+        "Demonic Wrath buff at 50% HP raises attack by 40% — use a Dispel skill or burst it down within 15 seconds",
+        "Regenerates 2% HP per 10 seconds above 30% HP — do not let the fight drag beyond 3 minutes"
+      ]
+    },
+    {
+      "id": "orgot",
+      "content_order": 5,
+      "min_gear_score": 35,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare"],
+      "mechanics": [
+        "Heavy melee attacker — Warden in slot 1 absorbs the bulk of damage and should be your highest-geared character",
+        "Chain grab at 80% HP stuns one character for 5 seconds — have a CC-break or Purify skill ready",
+        "Rage mode at 50% HP: ground pounds ignore block — you must dodge through the animation, not block",
+        "Regenerates 3% HP every 10 seconds — sustained burst DPS required, do not pace your skill usage"
+      ]
+    },
+    {
+      "id": "capital",
+      "content_order": 6,
+      "min_gear_score": 40,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare"],
+      "mechanics": [
+        "Multiple undead wave encounters before the final boss — heal between waves or enter the final phase at 70%+ HP",
+        "Final boss applies Dark Curse: reduces max HP by 20% per stack (up to 3 stacks)",
+        "Purify or Cleanse skills remove the curse — bring at least one character with this skill type",
+        "Wave adds have high Holy resistance — avoid pure Holy attackers during the wave phase"
+      ]
+    },
+    {
+      "id": "grayDemon",
+      "content_order": 7,
+      "min_gear_score": 45,
+      "difficulties": ["Hell", "Nightmare", "Abyss"],
+      "mechanics": [
+        "Timespace boss — available on a fixed schedule, limited to 3 daily attempts",
+        "Dark-element attacks ignore standard DEF — HP shields and barrier skills are more effective than DEF gear",
+        "Darkness field at 60% HP reduces all character accuracy by 30% — Holy-element characters are unaffected",
+        "Seal attack silences one character for 12 seconds — keep a second Supporter available as a backup healer"
+      ]
+    },
+    {
+      "id": "ancient",
+      "content_order": 8,
+      "min_gear_score": 50,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare"],
+      "mechanics": [
+        "Fire breath targets all characters — Ice-element accessories and characters are BiS here for the damage bonus",
+        "Periodic AoE eruption at 60% and 30% HP — activate your barrier or shielding skills 5 seconds beforehand",
+        "Tail swipe staggers front-row characters — keep your Warden in slot 1 with max HP gear",
+        "Enrages at 25% HP: all attacks gain +50% damage for 15 seconds — save your strongest burst skills for this window"
+      ]
+    },
+    {
+      "id": "albion",
+      "content_order": 9,
+      "min_gear_score": 55,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare"],
+      "mechanics": [
+        "Giant construct — wide-sweeping melee attacks hit the whole front row, position your Warden at slot 1",
+        "Rock-fall AoE: watch shadow indicators on the ground and step out before impact",
+        "At 60% HP activates a full-arena stomp — only airborne characters or those with dodge frames avoid it",
+        "Core weak point opens for 8 seconds after each stomp — focus your burst skills on this window only"
+      ]
+    },
+    {
+      "id": "ferzen",
+      "content_order": 10,
+      "min_gear_score": 55,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare"],
+      "mechanics": [
+        "Mine cave-in mechanic: environmental debris deals continuous party-wide damage — kill adds fast to reduce pressure",
+        "Boss has dual Earth and Thunder resistance — Wind-element characters are the best DPS here",
+        "Toxic gas at 50% HP poisons the entire party — use a Cleanse skill or bring poison-resistance accessories",
+        "Explosive ore adds spawn periodically and must be killed within a 5-second fuse or they deal 40% party HP"
+      ]
+    },
+    {
+      "id": "molbog",
+      "content_order": 11,
+      "min_gear_score": 55,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare"],
+      "mechanics": [
+        "Poison pools persist on the arena floor throughout the fight — movement and positioning are critical every second",
+        "Tongue attack grabs one character and deals 50% max HP — Warden in slot 1 should intercept this",
+        "At 40% HP spawns 3 poisonous toad adds — kill them immediately or they stack poison across the party",
+        "Thunder-element characters have innate poison resistance and are strongly preferred here"
+      ]
+    },
+    {
+      "id": "marmas",
+      "content_order": 12,
+      "min_gear_score": 60,
+      "difficulties": ["Hell", "Nightmare", "Abyss"],
+      "mechanics": [
+        "Timespace boss — Holy Knight with fast combo strings, limited daily attempts",
+        "Holy Blade skill pierces through warden shields — use evasion-based defenders or dodge-roll through it",
+        "Summons Holy Knight adds at 60% HP — adds buff Marmas' attack speed by 20% each while alive, kill them first",
+        "Phase 2 at 35% HP activates Divine Armor: reduces damage taken by 50% — use Debuff skills to strip the armor before bursting"
+      ]
+    },
+    {
+      "id": "banakro",
+      "content_order": 13,
+      "min_gear_score": 65,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare"],
+      "mechanics": [
+        "World boss — bring a full party, solo attempts above Normal difficulty are not viable",
+        "Dark curse stacks reduce all healing by 10% per stack (up to 5 stacks) — dispel immediately",
+        "Counter window after each major attack is the primary DPS opportunity — time your burst skills here",
+        "Fire and Holy characters deal bonus damage — bring at least 2 characters of either element"
+      ]
+    },
+    {
+      "id": "drake",
+      "content_order": 14,
+      "min_gear_score": 70,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare", "Abyss"],
+      "mechanics": [
+        "Multi-phase dragon fight: each phase shifts the dominant element — bring characters that cover Fire and Ice",
+        "Wing gust at full HP disorients the camera angle — stabilise with a Holy-buff character before the phase",
+        "Breath attack cycles Fire/Ice/Thunder with a 20-second warning animation — pre-buff the matching resistance",
+        "Tail whip at 30% HP deals ~80% of max HP — keep your healer alive above all other priorities"
+      ]
+    },
+    {
+      "id": "scorpy",
+      "content_order": 15,
+      "min_gear_score": 70,
+      "difficulties": ["Normal", "Hard", "Hell", "Nightmare", "Abyss"],
+      "mechanics": [
+        "Stinger tail attack applies Paralysis — bring paralysis-resist accessories or an immunity-buff character",
+        "Periodic sandstorm reduces all character accuracy by 25% — use high base hit-rate characters",
+        "At 50% HP the stinger tail detaches as a second enemy — defeat the tail first or it continues to apply Paralysis",
+        "Earth-element boss — Ice and Wind characters deal bonus damage throughout; avoid Thunder-element characters"
+      ]
+    },
+    {
+      "id": "redDemonGrayDemon",
+      "content_order": 16,
+      "min_gear_score": 80,
+      "difficulties": ["Hell", "Nightmare", "Abyss"],
+      "mechanics": [
+        "Dual boss fight — the hardest encounter currently available, do not attempt below 75% BiS on your recommended team",
+        "Red Demon applies Burn, Gray Demon applies Darkness — do not let both debuffs stack on the same character",
+        "Both bosses attack simultaneously — your Warden must be able to hold aggro against two independent threat sources",
+        "At 50% HP each boss enrages and begins synergy attacks — bring one boss to 30% HP before pivoting to the other",
+        "Recommended: Holy healer (counters Darkness), Ice attacker (bonus damage to both bosses)"
+      ]
+    }
+  ]
+}
