@@ -7,6 +7,7 @@ import { CharacterCard } from '@/components/strategy/CharacterCard';
 import { StrategyVerdict } from '@/components/strategy/StrategyVerdict';
 import { useAnonymousAuth } from '@/hooks/useAnonymousAuth';
 import { applyMyGearMode } from '@/lib/engine/buildEngine';
+import { getDifficultyMeta } from '@/lib/utils/difficulty';
 import type { Boss, ResolvedBuild, Verdict } from '@/types/game';
 
 export default function StrategyPage() {
@@ -14,6 +15,7 @@ export default function StrategyPage() {
   const [view, setView] = useState<'guide' | 'detail'>('guide');
   const [bosses, setBosses] = useState<Boss[]>([]);
   const [selectedBossId, setSelectedBossId] = useState<string>('galland');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
   const [builds, setBuilds] = useState<ResolvedBuild[]>([]);
   const [activeTeam, setActiveTeam] = useState(0);
   const [loadingBosses, setLoadingBosses] = useState(true);
@@ -35,12 +37,23 @@ export default function StrategyPage() {
       .finally(() => setLoadingBosses(false));
   }, []);
 
+  // Auto-select hardest difficulty when boss changes
+  useEffect(() => {
+    const boss = bosses.find(b => b.id === selectedBossId);
+    if (boss?.difficulties?.length) {
+      setSelectedDifficulty(boss.difficulties[boss.difficulties.length - 1]);
+    }
+  }, [selectedBossId, bosses]);
+
   const fetchBuild = useCallback(() => {
     if (!selectedBossId) return;
     setLoadingBuild(true);
     setActiveTeam(0);
-    const params = userId ? `?userId=${userId}` : '';
-    fetch(`/api/builds/${selectedBossId}${params}`)
+    const params = new URLSearchParams();
+    if (userId) params.set('userId', userId);
+    if (selectedDifficulty) params.set('difficulty', selectedDifficulty);
+    const qs = params.toString() ? `?${params}` : '';
+    fetch(`/api/builds/${selectedBossId}${qs}`)
       .then(r => r.json())
       .then((data: ResolvedBuild[]) => {
         if (Array.isArray(data) && data[0]?.slots) {
@@ -50,7 +63,7 @@ export default function StrategyPage() {
       })
       .catch(() => {})
       .finally(() => setLoadingBuild(false));
-  }, [selectedBossId, userId]);
+  }, [selectedBossId, userId, selectedDifficulty]);
 
   useEffect(() => { fetchBuild(); }, [fetchBuild]);
 
@@ -100,6 +113,34 @@ export default function StrategyPage() {
           )}
 
           {selectedBoss && <BossSpecCard boss={selectedBoss} />}
+
+          {/* Difficulty selector */}
+          {(selectedBoss?.difficulties?.length ?? 0) > 0 && (
+            <div className="px-5 mb-3">
+              <div className="text-[9px] font-mono text-white/20 uppercase tracking-widest mb-1.5">Difficulty</div>
+              <div className="flex flex-wrap gap-1.5">
+                {selectedBoss!.difficulties.map(d => {
+                  const m = getDifficultyMeta(d);
+                  const active = selectedDifficulty === d;
+                  return (
+                    <button
+                      key={d}
+                      onClick={() => setSelectedDifficulty(d)}
+                      className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full transition-all"
+                      style={{
+                        background: active ? m.bg : 'rgba(255,255,255,0.04)',
+                        color: active ? m.color : 'rgba(255,255,255,0.30)',
+                        border: active ? `1px solid ${m.color}55` : '1px solid rgba(255,255,255,0.08)',
+                        boxShadow: active ? `0 0 8px ${m.bg}` : 'none',
+                      }}
+                    >
+                      {d}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Team switcher */}
           {builds.length > 1 && (
