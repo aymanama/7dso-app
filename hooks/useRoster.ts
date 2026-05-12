@@ -1,21 +1,28 @@
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 export function useRoster(userId: string | null, initial: Record<string, boolean> = {}) {
+  const ownedRef = useRef(initial);
   const [owned, setOwned] = useState(initial);
 
   const toggle = useCallback(async (characterId: string) => {
-    const next = !owned[characterId];
-    setOwned(prev => ({ ...prev, [characterId]: next }));
+    const next = !ownedRef.current[characterId];
+    const newState = { ...ownedRef.current, [characterId]: next };
+    ownedRef.current = newState;
+    setOwned(newState);
     if (!userId) return;
-    fetch('/api/roster', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, characterId, owned: next }),
-    }).catch(() => {});
-  }, [userId, owned]);
+    const supabase = createClient();
+    await supabase.from('user_characters').upsert(
+      { user_id: userId, character_id: characterId, owned: next },
+      { onConflict: 'user_id,character_id' }
+    );
+  }, [userId]);
 
-  const setMany = useCallback((map: Record<string, boolean>) => setOwned(map), []);
+  const setMany = useCallback((map: Record<string, boolean>) => {
+    ownedRef.current = map;
+    setOwned(map);
+  }, []);
 
   return { owned, toggle, setMany };
 }
