@@ -84,6 +84,12 @@ export interface Weapon {
   sort_order: number;
 }
 
+export interface CharacterSkill {
+  name: string;
+  description: string;
+  type: 'active' | 'passive' | 'ultimate';
+}
+
 export interface Character {
   id: string;
   name: string;
@@ -98,6 +104,13 @@ export interface Character {
   blurb: string;
   portrait_url: string | null;
   updated_at?: string;
+  // Phase 4 enrichment fields (nullable — existing records may not have them)
+  pve_rank: 'S' | 'A' | 'B' | 'C' | null;
+  pvp_rank: 'S' | 'A' | 'B' | 'C' | null;
+  boss_rank: 'S' | 'A' | 'B' | 'C' | null;
+  skills: CharacterSkill[] | null;
+  recommended_weapon_id: string | null;
+  f2p_friendly: boolean;
 }
 
 export interface Boss {

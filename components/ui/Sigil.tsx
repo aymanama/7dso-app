@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils/cn';
 import { ELEMENT_META } from '@/lib/utils/elements';
@@ -13,10 +14,13 @@ interface Props {
 }
 
 export function Sigil({ name, portraitUrl, element, size = 48, className }: Props) {
+  const [imgError, setImgError] = useState(false);
   const meta = ELEMENT_META[element];
   const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   const px = size === 72 ? 'w-[72px] h-[72px]' : 'w-12 h-12';
   const ringWidth = size === 72 ? '3px' : '2px';
+
+  const showImage = portraitUrl && !imgError;
 
   return (
     <div className={cn('relative flex-shrink-0', px, className)}>
@@ -28,8 +32,15 @@ export function Sigil({ name, portraitUrl, element, size = 48, className }: Prop
           boxShadow: `0 0 16px ${meta.glow}`,
         }}
       >
-        {portraitUrl ? (
-          <Image src={portraitUrl} alt={name} fill className="object-cover object-top" sizes="72px" />
+        {showImage ? (
+          <Image
+            src={portraitUrl}
+            alt={name}
+            fill
+            className="object-cover object-top"
+            sizes="72px"
+            onError={() => setImgError(true)}
+          />
         ) : (
           <span
             className="font-mono font-bold select-none"

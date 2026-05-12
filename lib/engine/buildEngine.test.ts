@@ -37,6 +37,8 @@ const character: Character = {
   id: 'escanor', name: 'Escanor', tier: 'SSR', primary_element: 'fire', elements: ['fire'],
   primary_role: 'attacker', roles: ['attacker'], race: 'Human',
   weapons: ['Axe'], tier_rank: 'S', blurb: '', portrait_url: null,
+  pve_rank: 'S', pvp_rank: 'A', boss_rank: 'S',
+  skills: null, recommended_weapon_id: null, f2p_friendly: false,
 };
 
 const slot: BuildSlot = {

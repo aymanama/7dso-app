@@ -4,10 +4,11 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils/cn';
 
 const TABS = [
-  { href: '/strategy', icon: '◈', label: 'Strategy' },
+  { href: '/strategy', icon: '◆', label: 'Strategy' },
   { href: '/codex',    icon: '❒', label: 'Codex' },
   { href: '/vault',    icon: '⬡', label: 'Vault' },
   { href: '/farm',     icon: '⬢', label: 'Farm' },
+  { href: '/tier-list', icon: '◈', label: 'Tiers' },
 ];
 
 export function BottomTabBar() {
