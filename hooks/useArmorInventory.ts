@@ -9,18 +9,15 @@ export function useArmorInventory(
   const [owned, setOwned] = useState(initial);
 
   const toggle = useCallback(async (armorId: string) => {
-    let next = false;
-    setOwned(prev => {
-      next = !prev[armorId];
-      return { ...prev, [armorId]: next };
-    });
+    const next = !owned[armorId];
+    setOwned(prev => ({ ...prev, [armorId]: next }));
     if (!userId) return;
     const supabase = createClient();
     await supabase.from('user_armor').upsert(
       { user_id: userId, armor_id: armorId, owned: next },
       { onConflict: 'user_id,armor_id' }
     );
-  }, [userId]);
+  }, [userId, owned]);
 
   const setMany = useCallback((map: Record<string, boolean>) => {
     setOwned(map);
