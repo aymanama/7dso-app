@@ -206,3 +206,33 @@ export interface Engravement {
   image_url: string | null;
   sort_order: number;
 }
+
+export interface BossReadiness {
+  bossId: string;
+  bossName: string;
+  elementId: ElementId;
+  contentOrder: number;
+  verdict: Verdict | 'no_roster';
+  ownedSlots: number;
+  totalSlots: number;
+  bisCount: number;
+  totalBisSlots: number;
+  minGearScore: number;
+  ready: boolean;
+}
+
+export interface PlannerCard {
+  kind: 'boss' | 'gear' | 'character';
+  title: string;
+  subtitle: string;
+  detail: string;
+  meta: string;
+  bossId?: string;
+  characterId?: string;
+  itemId?: string;
+}
+
+export interface PlannerResult {
+  cards: PlannerCard[];
+  readiness: BossReadiness[];
+}
