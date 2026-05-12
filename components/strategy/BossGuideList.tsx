@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { ElementPip } from '@/components/ui/ElementPip';
+import { getDifficultyMeta } from '@/lib/utils/difficulty';
 import type { ElementId } from '@/types/game';
 
 interface GuideSlot {
@@ -27,6 +28,7 @@ interface GuideBoss {
   weakness_elements: ElementId[];
   threat: number;
   kind: string;
+  difficulties: string[];
   teams: GuideTeam[];
 }
 
@@ -109,6 +111,20 @@ function BossGuideCard({ boss }: { boss: GuideBoss }) {
           <div className="font-mono font-bold text-[14px] text-white leading-tight">{boss.name}</div>
           <div className="text-[9px] font-mono text-teal-400/60 mt-0.5">
             Weak: {boss.weakness_elements.join(' · ')}
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {boss.difficulties.map(d => {
+              const m = getDifficultyMeta(d);
+              return (
+                <span
+                  key={d}
+                  className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-full"
+                  style={{ background: m.bg, color: m.color }}
+                >
+                  {d}
+                </span>
+              );
+            })}
           </div>
           {!open && (
             <div className="text-[9px] font-mono text-white/25 mt-1">

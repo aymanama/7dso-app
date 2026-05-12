@@ -2,6 +2,7 @@
 import { Sigil } from '@/components/ui/Sigil';
 import { ElementPip } from '@/components/ui/ElementPip';
 import { ELEMENT_META } from '@/lib/utils/elements';
+import { getDifficultyMeta } from '@/lib/utils/difficulty';
 import type { Boss } from '@/types/game';
 
 interface Props {
@@ -37,6 +38,23 @@ export function BossSpecCard({ boss }: Props) {
         <StatPill label="THREAT" value={`${boss.threat}%`} color={boss.threat >= 80 ? '#F87171' : '#FFA958'} />
         <StatPill label="WEAKNESS" value={boss.weakness_elements.join(' · ') || '—'} color="#5EEAD4" />
       </div>
+
+      {boss.difficulties?.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-3">
+          {boss.difficulties.map(d => {
+            const m = getDifficultyMeta(d);
+            return (
+              <span
+                key={d}
+                className="text-[9px] font-mono font-bold px-2 py-1 rounded-full"
+                style={{ background: m.bg, color: m.color }}
+              >
+                {d}
+              </span>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -125,6 +125,7 @@ export interface Boss {
   tags: string[];
   blurb: string;
   bis_set_ids: string[];
+  difficulties: string[];
   updated_at?: string;
 }
 

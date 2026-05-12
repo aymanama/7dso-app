@@ -11,7 +11,7 @@ export async function GET() {
     { data: characters },
     { data: gearSets },
   ] = await Promise.all([
-    supabase.from('bosses').select('id,name,short_name,element_id,weakness_elements,threat,kind,bis_set_ids').order('threat', { ascending: false }),
+    supabase.from('bosses').select('id,name,short_name,element_id,weakness_elements,threat,kind,bis_set_ids,difficulties').order('threat', { ascending: false }),
     supabase.from('builds').select('boss_id,team_index,team_name,slot_index,character_id,ring_priority,necklace_priority,earring_priority').order('team_index').order('slot_index'),
     supabase.from('accessories').select('id,name,set_id'),
     supabase.from('characters').select('id,name,primary_element,tier_rank,boss_rank'),
