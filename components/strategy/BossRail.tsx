@@ -61,14 +61,17 @@ export function BossRail({ bosses, selectedId, onSelect, verdicts }: Props) {
             >
               {boss.short_name.length > 7 ? boss.short_name.slice(0, 7) + '…' : boss.short_name}
             </span>
-            {/* Verdict dot */}
-            <div className="h-1.5 flex items-center justify-center">
-              {verdict && (
+            <div className="h-3.5 flex items-center justify-center">
+              {verdict ? (
                 <div
                   className="w-1.5 h-1.5 rounded-full"
                   style={{ background: VERDICT_COLORS[verdict] }}
                 />
-              )}
+              ) : boss.content_order < 99 ? (
+                <span className="text-[8px] font-mono text-white/20 leading-none">
+                  #{boss.content_order}
+                </span>
+              ) : null}
             </div>
           </motion.button>
         );
