@@ -46,6 +46,10 @@ export async function GET(req: Request, { params }: { params: { bossId: string }
     ? specific
     : allBuildSlots.filter((s: BuildSlot & { difficulty: string }) => s.difficulty === 'all');
 
+  if (buildSlots.length === 0) {
+    return NextResponse.json({ error: 'No builds available for this difficulty' }, { status: 404 });
+  }
+
   const accessories       = new Map((allAccessories ?? []).map((a: Accessory) => [a.id, a]));
   const characters        = new Map((allCharacters ?? []).map((c: Character) => [c.id, c]));
   const bosses            = new Map((allBosses ?? []).map((b: Boss) => [b.id, b]));

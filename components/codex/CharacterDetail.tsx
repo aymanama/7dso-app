@@ -38,7 +38,7 @@ function loadWeapons() {
     .then((list: Weapon[]) => {
       if (Array.isArray(list)) for (const w of list) weaponCache.set(w.id, w);
     })
-    .catch(() => {});
+    .catch(() => { weaponFetchPromise = null; }); // allow retry on next open
   return weaponFetchPromise;
 }
 

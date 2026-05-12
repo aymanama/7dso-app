@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { BossRail } from '@/components/strategy/BossRail';
 import { BossSpecCard } from '@/components/strategy/BossSpecCard';
 import { BossGuideList } from '@/components/strategy/BossGuideList';
@@ -37,35 +37,55 @@ export default function StrategyPage() {
       .finally(() => setLoadingBosses(false));
   }, []);
 
-  // Auto-select hardest difficulty when boss changes
+  // Single effect: resolve difficulty for the selected boss, then fetch.
+  // Combining these avoids the double-fetch caused by having a separate
+  // difficulty-setter effect and a separate fetch effect that fire in sequence.
   useEffect(() => {
-    const boss = bosses.find(b => b.id === selectedBossId);
-    if (boss?.difficulties?.length) {
-      setSelectedDifficulty(boss.difficulties[boss.difficulties.length - 1]);
-    }
-  }, [selectedBossId, bosses]);
+    if (loadingBosses) return;
 
-  const fetchBuild = useCallback(() => {
-    if (!selectedBossId) return;
+    const boss = bosses.find(b => b.id === selectedBossId);
+    const hardest = boss?.difficulties?.length
+      ? boss.difficulties[boss.difficulties.length - 1]
+      : '';
+
+    // If difficulty isn't set yet for this boss, set it and wait for re-render.
+    // The next run will have selectedDifficulty === hardest and will proceed to fetch.
+    if (hardest && !selectedDifficulty) {
+      setSelectedDifficulty(hardest);
+      return;
+    }
+
     setLoadingBuild(true);
     setActiveTeam(0);
+
     const params = new URLSearchParams();
     if (userId) params.set('userId', userId);
     if (selectedDifficulty) params.set('difficulty', selectedDifficulty);
     const qs = params.toString() ? `?${params}` : '';
+
+    let cancelled = false;
     fetch(`/api/builds/${selectedBossId}${qs}`)
       .then(r => r.json())
       .then((data: ResolvedBuild[]) => {
+        if (cancelled) return;
         if (Array.isArray(data) && data[0]?.slots) {
           setBuilds(data);
           setVerdicts(prev => ({ ...prev, [selectedBossId]: data[0].verdict }));
+        } else {
+          setBuilds([]);
         }
       })
-      .catch(() => {})
-      .finally(() => setLoadingBuild(false));
-  }, [selectedBossId, userId, selectedDifficulty]);
+      .catch(() => { if (!cancelled) setBuilds([]); })
+      .finally(() => { if (!cancelled) setLoadingBuild(false); });
 
-  useEffect(() => { fetchBuild(); }, [fetchBuild]);
+    return () => { cancelled = true; };
+  }, [selectedBossId, selectedDifficulty, userId, bosses, loadingBosses]);
+
+  // Reset difficulty when switching boss so the effect above re-resolves it.
+  const handleSelectBoss = (id: string) => {
+    setSelectedDifficulty('');
+    setSelectedBossId(id);
+  };
 
   const selectedBoss = bosses.find(b => b.id === selectedBossId) ?? null;
   const rawBuild = builds[activeTeam] ?? null;
@@ -109,7 +129,7 @@ export default function StrategyPage() {
               ))}
             </div>
           ) : (
-            <BossRail bosses={bosses} selectedId={selectedBossId} onSelect={setSelectedBossId} verdicts={verdicts} />
+            <BossRail bosses={bosses} selectedId={selectedBossId} onSelect={handleSelectBoss} verdicts={verdicts} />
           )}
 
           {selectedBoss && <BossSpecCard boss={selectedBoss} />}

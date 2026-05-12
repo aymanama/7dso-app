@@ -20,7 +20,8 @@ export default function CodexPage() {
   useEffect(() => {
     fetch('/api/characters')
       .then(r => r.json())
-      .then(setCharacters)
+      .then((data) => { if (Array.isArray(data)) setCharacters(data); })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 

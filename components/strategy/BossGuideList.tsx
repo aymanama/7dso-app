@@ -178,6 +178,18 @@ export function BossGuideList() {
     );
   }
 
+  if (bosses.length === 0) {
+    return (
+      <div className="flex flex-col items-center py-16 px-5 text-center">
+        <span className="text-5xl text-white/10">◆</span>
+        <p className="text-sm font-mono text-white/40 mt-3">No boss data yet</p>
+        <p className="text-[11px] font-mono text-white/20 mt-1">
+          Run the seed script to populate boss builds.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-2 pb-8">
       <div className="px-4 mb-3 text-[9px] font-mono text-white/25 leading-relaxed">

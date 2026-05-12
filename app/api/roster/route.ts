@@ -18,14 +18,19 @@ export async function GET(req: Request) {
 }
 
 async function upsertCharacter(req: Request) {
-  const { userId, characterId, owned } = await req.json();
-  if (!userId || !characterId) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-  const supabase = createServerClient();
-  await supabase.from('user_characters').upsert(
-    { user_id: userId, character_id: characterId, owned },
-    { onConflict: 'user_id,character_id' }
-  );
-  return NextResponse.json({ ok: true });
+  try {
+    const { userId, characterId, owned } = await req.json();
+    if (!userId || !characterId) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+    const supabase = createServerClient();
+    const { error } = await supabase.from('user_characters').upsert(
+      { user_id: userId, character_id: characterId, owned },
+      { onConflict: 'user_id,character_id' }
+    );
+    if (error) throw error;
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) { return upsertCharacter(req); }

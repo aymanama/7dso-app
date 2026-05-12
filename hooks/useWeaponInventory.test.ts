@@ -1,17 +1,13 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi, it, expect, describe, beforeEach } from 'vitest';
 
-const mockUpsert = vi.fn().mockResolvedValue({ error: null });
-vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({
-    from: (_table: string) => ({ upsert: mockUpsert }),
-  }),
-}));
+const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+vi.stubGlobal('fetch', mockFetch);
 
 import { useWeaponInventory } from './useWeaponInventory';
 
 describe('useWeaponInventory', () => {
-  beforeEach(() => mockUpsert.mockClear());
+  beforeEach(() => mockFetch.mockClear());
 
   it('initializes owned state from initial prop', () => {
     const { result } = renderHook(() =>
@@ -36,21 +32,22 @@ describe('useWeaponInventory', () => {
     expect(result.current.owned['wpn1']).toBe(false);
   });
 
-  it('does not call supabase when userId is null', async () => {
+  it('does not call API when userId is null', async () => {
     const { result } = renderHook(() => useWeaponInventory(null, {}));
     await act(async () => { await result.current.toggle('wpn1'); });
-    expect(mockUpsert).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('calls supabase upsert with correct payload when userId provided', async () => {
+  it('calls PATCH /api/inventory?type=weapon with correct payload when userId provided', async () => {
     const { result } = renderHook(() =>
       useWeaponInventory('user-456', { wpn1: false })
     );
     await act(async () => { await result.current.toggle('wpn1'); });
-    expect(mockUpsert).toHaveBeenCalledWith(
-      { user_id: 'user-456', weapon_id: 'wpn1', owned: true },
-      { onConflict: 'user_id,weapon_id' }
-    );
+    expect(mockFetch).toHaveBeenCalledWith('/api/inventory?type=weapon', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: 'user-456', itemId: 'wpn1', owned: true }),
+    });
   });
 
   it('setMany replaces the entire owned state', () => {
@@ -60,7 +57,7 @@ describe('useWeaponInventory', () => {
     expect(result.current.owned['wpn2']).toBe(false);
   });
 
-  it('rapid double-toggle produces correct DB calls (no stale closure)', async () => {
+  it('rapid double-toggle produces correct API calls (no stale closure)', async () => {
     const { result } = renderHook(() =>
       useWeaponInventory('user-456', { wpn1: false })
     );
@@ -68,15 +65,17 @@ describe('useWeaponInventory', () => {
       result.current.toggle('wpn1');
       result.current.toggle('wpn1');
     });
-    expect(mockUpsert).toHaveBeenCalledTimes(2);
-    expect(mockUpsert).toHaveBeenNthCalledWith(1,
-      { user_id: 'user-456', weapon_id: 'wpn1', owned: true },
-      { onConflict: 'user_id,weapon_id' }
-    );
-    expect(mockUpsert).toHaveBeenNthCalledWith(2,
-      { user_id: 'user-456', weapon_id: 'wpn1', owned: false },
-      { onConflict: 'user_id,weapon_id' }
-    );
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenNthCalledWith(1, '/api/inventory?type=weapon', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: 'user-456', itemId: 'wpn1', owned: true }),
+    });
+    expect(mockFetch).toHaveBeenNthCalledWith(2, '/api/inventory?type=weapon', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: 'user-456', itemId: 'wpn1', owned: false }),
+    });
     expect(result.current.owned['wpn1']).toBe(false);
   });
 });

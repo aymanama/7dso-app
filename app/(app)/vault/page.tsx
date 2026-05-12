@@ -192,21 +192,22 @@ export default function VaultPage() {
     return map;
   }, [filteredEngravements, characterMap]);
 
+  // Use filtered (visible) lists so counts reflect the current search/filter state
   const activeOwnedCount = activeTab === 'accessories'
-    ? accessories.filter(a => accessoryOwned[a.id]).length
+    ? filteredAccessories.filter(a => accessoryOwned[a.id]).length
     : activeTab === 'armor'
-    ? armorPieces.filter(a => armorOwned[a.id]).length
+    ? filteredArmor.filter(a => armorOwned[a.id]).length
     : activeTab === 'engravements'
-    ? engravements.filter(e => engravementOwned[e.id]).length
-    : weapons.filter(w => weaponOwned[w.id]).length;
+    ? filteredEngravements.filter(e => engravementOwned[e.id]).length
+    : filteredWeapons.filter(w => weaponOwned[w.id]).length;
 
   const activeTotalCount = activeTab === 'accessories'
-    ? accessories.length
+    ? filteredAccessories.length
     : activeTab === 'armor'
-    ? armorPieces.length
+    ? filteredArmor.length
     : activeTab === 'engravements'
-    ? engravements.length
-    : weapons.length;
+    ? filteredEngravements.length
+    : filteredWeapons.length;
 
   const isLoading = activeTab === 'accessories' ? accessoriesLoading
     : activeTab === 'armor' ? armorLoading

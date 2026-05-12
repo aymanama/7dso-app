@@ -38,7 +38,7 @@ export function Sigil({ name, portraitUrl, element, size = 48, className }: Prop
             alt={name}
             fill
             className="object-cover object-top"
-            sizes="72px"
+            sizes={`${size}px`}
             onError={() => setImgError(true)}
           />
         ) : (
