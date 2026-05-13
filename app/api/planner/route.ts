@@ -81,13 +81,13 @@ export async function GET(req: Request) {
       bossId:        boss.id,
       bossName:      boss.name,
       elementId:     boss.element_id,
-      contentOrder:  (boss as Boss & { content_order: number }).content_order ?? 99,
+      contentOrder: boss.content_order,
       verdict,
       ownedSlots,
       totalSlots,
       bisCount,
       totalBisSlots,
-      minGearScore:  (boss as Boss & { min_gear_score: number }).min_gear_score ?? 0,
+      minGearScore: boss.min_gear_score,
       ready,
     });
   }
@@ -100,7 +100,7 @@ export async function GET(req: Request) {
     .filter(r => r.verdict !== 'no_roster' && !r.ready)
     .sort((a, b) => a.contentOrder - b.contentOrder);
 
-  const focusBoss = notReady[0] ?? readiness.sort((a, b) => {
+  const focusBoss = notReady[0] ?? readiness.slice().sort((a, b) => {
     const pctA = a.totalBisSlots > 0 ? a.bisCount / a.totalBisSlots : 0;
     const pctB = b.totalBisSlots > 0 ? b.bisCount / b.totalBisSlots : 0;
     return pctA - pctB;
@@ -115,7 +115,7 @@ export async function GET(req: Request) {
       title:    focusBoss.bossName,
       subtitle: 'Focus boss — run this until your verdict improves',
       detail:   `${bisPct}% BiS · ${focusBoss.ownedSlots}/${focusBoss.totalSlots} characters owned`,
-      meta:     focusBoss.verdict === 'no_roster' ? 'no team' : focusBoss.verdict.replace('_', ' '),
+      meta:     focusBoss.verdict,
       bossId:   focusBoss.bossId,
     });
   }

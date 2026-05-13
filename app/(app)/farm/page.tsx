@@ -92,6 +92,7 @@ export default function FarmPage() {
   const [planner, setPlanner] = useState<PlannerResult | null>(null);
   const [loadingPlanner, setLoadingPlanner] = useState(false);
   const [plannerFetched, setPlannerFetched] = useState(false);
+  const [plannerError, setPlannerError] = useState(false);
 
   useEffect(() => {
     if (userId === null) return;
@@ -115,7 +116,7 @@ export default function FarmPage() {
     fetch(`/api/planner?userId=${userId}`)
       .then(r => r.json())
       .then((data: PlannerResult) => setPlanner(data))
-      .catch(() => {})
+      .catch(() => { setPlannerError(true); })
       .finally(() => setLoadingPlanner(false));
   }, [view, userId, plannerFetched]);
 
@@ -252,6 +253,16 @@ export default function FarmPage() {
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-28 rounded-2xl bg-white/[0.03] animate-pulse" />
               ))}
+            </div>
+          )}
+
+          {!loadingPlanner && plannerError && (
+            <div className="mx-5 mt-8 text-center">
+              <div className="text-4xl mb-4">◆</div>
+              <div className="font-mono font-bold text-white/40 text-base mb-2">Failed to load</div>
+              <p className="text-[11px] font-mono text-white/25 leading-relaxed">
+                Could not reach the planner. Check your connection and reload.
+              </p>
             </div>
           )}
 
